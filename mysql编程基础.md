@@ -1,6 +1,5 @@
 ## MySQL编程基础
 
-
 ### 1. 常量
 #### 1.1 字符串常量
 ```sql
@@ -93,7 +92,7 @@ select count(*) from instructor into @instru_count;
 set @instru_no = '10101';
 select * from instructor where id=@instru_no;
 ```
-### 3. 运算符
+### 3.运算符
 
 - 算术
 ```sql
