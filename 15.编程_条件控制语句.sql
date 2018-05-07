@@ -9,16 +9,16 @@ If 条件表达式1 then 语句块1;
 end if;
 */
 
-select salary into @sal from instructor where id='10101';
+select product_id into @pid from product where id='10101';
 
--- 根据不同角色对instructor和student进行查询
+-- 课堂示例1: 根据不同类别对instructor和student进行查询
 
 delimiter $$
 create function get_name_fn2 (id1 varchar(5), role varchar(20)) returns varchar(20)
 reads sql data
 begin
 	declare name1 varchar(20);
-    if (role='student') then
+  if (role='student') then
 		select name into name1 from student where id=id1;
 	elseif (role='instructor') then
 		select name into name1 from instructor where id=id1;
@@ -58,7 +58,7 @@ create function get_week_fn (week_no int) returns char(20)
 no sql
 begin
 	declare week_day char(20);
-    case week_no
+  case week_no
 		when 0 then set week_day = 'Monday';
         when 1 then set week_day = 'Tuesday';
         when 2 then set week_day = 'Wednesday';
@@ -124,9 +124,9 @@ begin
 		end if;
 
 	end while add_num;
-    
+
     return accum_sum;
-    
+
 end;
 $$
 delimiter ;
@@ -150,17 +150,17 @@ begin
         if start_num <= n then
 			if (start_num % 3) = 0 then
 				set accum_sum = accum_sum + start_num;
-                
+
 			else iterate add_num;
             end if;
-            
+
 		else leave add_num;
         end if;
 
 	end while add_num;
-    
+
     return accum_sum;
-    
+
 end;
 $$
 delimiter ;
@@ -185,11 +185,11 @@ begin
     repeat
 		set start_num = start_num + 1;
         set accum_sum = start_num + accum_sum;
-        
+
 	until (start_num = n) end repeat;
-    
+
     return accum_sum;
-    
+
 end;
 $$
 delimiter ;
@@ -222,11 +222,11 @@ begin
         if start_num = n then
 			leave add_sum;
 		end if;
-        
+
 	end loop;
-    
+
     return accum_sum;
-    
+
 end;
 $$
 delimiter ;
