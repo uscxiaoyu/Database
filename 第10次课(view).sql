@@ -21,6 +21,8 @@ CREATE VIEW view_product
 AS
 SELECT * FROM product;
 
+show tables;
+
 -- 查看视图view_product的前10条记录
 SELECT * FROM view_product LIMIT 10;
 
@@ -38,11 +40,15 @@ CREATE VIEW view_product2
 AS
 SELECT product_id, product_name, product_place, subsort_id FROM product;
 
+SELECT * FROM view_product2 LIMIT 10;
+
 -- 1.4 结合GROUP BY构建汇总视图
 -- 课堂示例5：创建视图sum_product，包含product中product_place和各产地对应的产品数量
 CREATE VIEW sum_product
 AS
 SELECT product_place, count(product_id) FROM product GROUP BY product_place;
+
+desc sum_product;
 
 SELECT * FROM sum_product;
 
@@ -52,13 +58,20 @@ SELECT * FROM sum_product;
 CREATE VIEW sum_product2(product_place, num_product)
 AS
 SELECT product_place, count(product_id) FROM product GROUP BY product_place;
+
+desc sum_product2;
+
 -- 或者
-CREATE VIEW sum_product3(product_place, num_product)
+CREATE VIEW sum_product3
 AS
 SELECT product_place, count(product_id) AS num_product
 FROM product GROUP BY product_place;
 
--- 1.5 查询视图
+desc sum_product3;
+
+SELECT * FROM sum_product3;
+
+-- 1.6 查询视图
 /*视图和表一样，共用相同的查询语法:
 SELECT * | 视图字段列表
 FROM 视图名称
@@ -72,9 +85,9 @@ FROM sum_product3;
 -- 等价于查看
 SELECT *
 FROM (SELECT product_place, count(product_id) AS num_product
-FROM product GROUP BY product_place) AS A;
+FROM product GROUP BY product_place) AS a;
 
--- 1.8 在多表上建立视图
+-- 1.7 在多表上建立视图
 -- 课堂示例8：创建视图view_sort_product，包含类别名称和对应的产品数量
 CREATE VIEW view_sort_product
 AS
@@ -97,10 +110,10 @@ DESC view_member;
 -- (3) 利用SHOW CRAETE VIEW查看view_member的定义
 SHOW CREATE VIEW view_member;
 
--- (4) 创建view_sort视图，包含sort表中的sort_id， 以及其对应的子类别的数量，并命名为num_subsort
+-- (4) 创建view_sort视图，包含sort表中的sort_name， 以及其对应的子类别的数量，并命名为num_subsort
 CREATE VIEW view_sort
 AS
-SELECT sort.sort_id, count(subsort.subsort_id) AS num_subsort
+SELECT sort.sort_name, count(subsort.subsort_id) AS num_subsort
 FROM sort JOIN subsort ON sort.sort_id = subsort.sort_id
 GROUP BY subsort.subsort_id;
 
@@ -119,10 +132,12 @@ WHERE sort_name LIKE '%办公%';
 -- 二、修改(重新定义)视图结构
 -- 2.1 利用CREATE OR REPLACE VIEW重新定义视图
 -- 课堂示例9：重新定义视图view_product，包含product_id, product_name, product_place, sort_id, subsort_id
-CREATE OR REPLACE VIEW view_product
+CREATE OR REPLACE VIEW view_product3
 AS
 SELECT product_id, product_name, product_place, sort_id, subsort_id
 FROM product;
+
+SHOW TABLES;
 
 -- 2.2 使用ALTER语句修改视图
 /*语法：
@@ -130,6 +145,8 @@ ALTER [ALGORITHM = {UNIDIFIED | MERGE | TEMPTABLE}]
 VIEW view_name [(column_list)]
 AS SELECT查询语句
 [WITH [CASCADE | LOCAL] CHECK OPTION];
+
+注意：被修改的视图必须要存在
 */
 -- 课堂示例10: 修改视图结构view_product, 包含product_id, product_name, product_place
 ALTER VIEW view_product
@@ -146,7 +163,7 @@ WHERE product_place = '国产';
 
 SELECT * FROM view_product WHERE product_place='中国' LIMIT 10;
 
-SELECT * FROM view_product WHERE product_place='中国' LIMIT 10;
+SELECT * FROM product WHERE product_place='中国' LIMIT 10;
 
 -- 3.2 插入 INSERT
 -- 课堂示例12：通过view_product插入一条product_id = '12345', product_name='3d打印机', product_place='上海'
@@ -160,14 +177,14 @@ SELECT * FROM product WHERE product_name='3d打印机';
 -- 3.3 删除 DELETE
 -- 课堂示例13：通过view_product删除product_name为'3d打印机'的记录
 DELETE FROM view_product
-WHERE product_place = '3d打印机';
+WHERE product_name = '3d打印机';
 
 SELECT * FROM view_product WHERE product_name='3d打印机';
 
-SELECT * FROM product WHERE product_name='3d打印机';
+SELECT product_id, product_name, product_place FROM product WHERE product_name='3d打印机';
 
 /*注意：
-当视图包含一下结构时，更新操作不能执行：
+当视图包含以下结构时，更新操作不能执行：
 （1）包含基本表中被定义为非空的列
 （2）select语句后的字段列表中使用了数学表达式
 （3）select语句后的字段列表中使用了聚合函数
@@ -177,15 +194,15 @@ SELECT * FROM product WHERE product_name='3d打印机';
 /*语法:
 DROP VIEW 视图名称;
 */
--- 课堂示例14: 删除视图sum_product3
-DROP VIEW view_product;
+-- 课堂示例14: 删除视图view_product
+DROP VIEW if exists view_product;
 
 SHOW TABLES;
 
 -- 课堂练习2
 
 -- (1) 利用CREATE OR REPLACE VIEW创建view_member视图, 包含member表中的user_name, sex, email等字段
-CREATE VIEW view_member
+CREATE OR REPLACE VIEW view_member
 AS
 SELECT user_name, sex, email
 FROM member;
@@ -193,14 +210,14 @@ FROM member;
 -- (2) 利用ALTER VIEW修改视图view_member，使其包含member表中的user_name, sex, email, address, phone等字段
 ALTER VIEW view_member
 AS
-SELECT user_name, sex, email， address, phone
+SELECT user_name, true_name, sex, email, address, phone
 FROM member;
 
--- (3) 通过view_memeber更新user_name为'饿狼'的记录的true_name为'杨颖'
+-- (3) 通过view_memeber更新user_name为'饿狼'的记录的true_name为'胡颖'
 SELECT * FROM view_member WHERE user_name = '饿狼';
 
 UPDATE view_member
-SET true_name = '杨颖'
+SET true_name = '胡颖'
 WHERE user_name = '饿狼';
 
 SELECT * FROM view_member WHERE user_name = '饿狼';
@@ -218,4 +235,4 @@ DELETE FROM view_member
 WHERE user_name = '风清扬';
 
 -- (6) 删除视图view_memeber
-DROP VIEW view_member;
+DROP VIEW IF EXISTS view_member;
