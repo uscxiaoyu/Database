@@ -11,7 +11,7 @@ SELECT product_id, product_name, product_code, product_place,
 FROM product;
 
 -- 课堂示例2：通过*查询product表的所有数据
-SELECT * 
+SELECT *
 FROM product;
 
 -- 课堂示例3：查询指定字段对应的数据
@@ -19,7 +19,7 @@ SELECT product_id, product_name, price
 FROM product;
 
 -- 课堂练习1：
--- 查询member表中的所有数据 
+-- 查询member表中的所有数据
 SHOW COLUMNS FROM member;
 
 SELECT user_name, user_password, true_name, sex, phone, mobile, email, address, attribute
@@ -38,19 +38,19 @@ FROM member;
 /* 语法格式:
 SELECT 字段名1, 字段名2, ...
 FROM 表名
-WHERE 条件表达式; 
+WHERE 条件表达式;
 
 常见的关系运算符号：=、<>、！=、<、<=、>、>=
 */
 
 -- 课堂示例4：查询product表中Product_Place为“天津”的产品信息
-SELECT * 
-FROM product 
+SELECT *
+FROM product
 WHERE product_place = '天津';
 
 -- 课堂示例5：使用SELECT语句查询Product_Name为“京瓷KM-4030复印机”的商品价格
-SELECT price 
-FROM product 
+SELECT price
+FROM product
 WHERE product_name = '京瓷KM-4030复印机';
 
 -- 课堂示例6：查询Product表中Price 大于1000的商品代码和名称
@@ -78,7 +78,7 @@ WHERE product_place NOT IN ('天津', '北京', '日本');
 /* 语法格式
 SELECT *|{字段名1,字段名2,……}
 FROM 表名 WHERE 字段名 [NOT] BETWEEN 值1 AND 值2; */
- 
+
 -- 课堂示例8：查询prodct表中Price值在200和500之间的商品信息
 SELECT *
 FROM product
@@ -107,7 +107,7 @@ WHERE product_place IS NOT NULL;
 
 -- 2.5 字段前带DISTINCT关键字的查询：去重复
 /* 语法格式
-SELECT DISTINCT 字段名 
+SELECT DISTINCT 字段名
 FROM 表名
 [WHERE 条件表达式];
 */
@@ -169,7 +169,7 @@ WHERE 条件表达式1 […… AND 条件表达式n];
 */
 
 -- 课堂示例16：找出商品名称含复印机且产地在天津的记录
-SELECT * 
+SELECT *
 FROM product
 WHERE product_place = '天津' AND product_name LIKE '%复印机%';
 
@@ -233,7 +233,7 @@ WHERE product_name LIKE '%复印机%' OR product_name LIKE '%过胶机%' AND pro
 /*当不需要显示所有查询结果时，可以通过LIMIT限定查询的个数, 语法格式为：
 SELECT *|{字段名1,字段名2,……}
 FROM 表名
-WHERE 条件表达式1 OR […… OR 条件表达式n] 
+WHERE 条件表达式1 OR […… OR 条件表达式n]
 	LIMIT m [,n];
 
 参数m为偏移量（即第一个返回的记录对应的序号），n为返回的个数
@@ -253,12 +253,39 @@ WHERE product_place = '天津' AND product_name LIKE '%复印机%' LIMIT 5;
 SELECT 字段1, 字段2, ... | *
 FROM 表名
 WHERE 条件表达式
-INTO OUTFILE "文件路径+文件名+扩展名";
+INTO OUTFILE "文件路径+文件名+扩展名" CHARACTER SET 字符集
+FILEDS TERMINATED BY 字段值分割符
+OPTIONALLY ENCLOSED BY 字符串标识符
+LINES TERMINATED BY 换行符;
 */
 SELECT product_id, product_name, product_place, price, sort_id
 FROM product
 WHERE price > 100
-INTO OUTFILE 'E:\1.xls';
+INTO OUTFILE 'E:\1.xls' CHARACTER SET gbk
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\n';
+
+
+-- 2.11　将外部文件写入到mysql表中
+/*
+(1) 准备工作：文本文件，例如E:\1.csv
+(2) 语法格式：
+LOAD DATA INFILE "文件路径+文件名+扩展名"
+INTO TABLE 表名 CHARACTER SET 字符集
+FILEDS TERMINATED BY 字段值分割符
+OPTIONALLY ENCLOSED BY 字符串标识符
+LINES TERMINATED BY 换行符;
+*/
+DROP TABLE P1;
+CREATE TABLE p1 AS SELECT * FROM product WHERE 1=2;
+SHOW CREATE TABLE p1;
+
+LOAD DATA INFILE "E:\1.CSV"
+INTO TABLE p1 CHARACTER SET gbk
+FILEDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\n';
 
 -- 课堂练习2
 /*
@@ -306,7 +333,7 @@ FROM product;
 -- (5) 找出价格在1000元以下的商品名称含书柜和价格在1000元到2000元之间的商品名称含保险柜的商品记录
 SELECT *
 FROM product
-WHERE (price <= 1000 AND product_name LIKE '%书柜%') 
+WHERE (price <= 1000 AND product_name LIKE '%书柜%')
 	OR (price BETWEEN 1000 AND 2000 AND product_name LIKE '%保险柜%');
 
 -- 或者
