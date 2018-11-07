@@ -133,14 +133,14 @@ SELECT DATE_FORMAT(NOW(),'%d %b %Y %T:%f'); -- T时间, 24-小时(hh:mm:ss)
 SELECT IF(5>6, '对', '错');
 SELECT IFNULL(null, '空值'), IFNULL(1, '空值');
 
--- 课堂示例16:查询Product表中的Product_ID，Product_Name，Sort_ID 和SubSort_ID， 
+-- 课堂示例16:查询Product表中的Product_ID，Product_Name，Sort_ID 和SubSort_ID，
 -- 把Sort_ID 和SubSort_ID 用“-”连接起来
-SELECT CONCAT(product_id,product_name,sort_id,'-',subsort_id) 
+SELECT CONCAT(product_id,product_name,sort_id,'-',subsort_id)
 FROM product;
 
 -- 课堂示例17:查询product表中的Product_ID, Product_Name和Product_Date字段值，
 -- 如果Product_Date字段的月份大于6则返回下半年，否则返回上半年。
-SELECT product_id, product_date, product_name, 
+SELECT product_id, product_date, product_name,
  IF(MONTH(product_date)>6, '下半年', '上半年')
 FROM product;
 
@@ -170,14 +170,14 @@ FROM product
 GROUP BY product_place, MONTH(product_date);
 
 -- 查找Product_ID, Product_Name,Product_Date，并标记Product_Date对应的季度
-SELECT product_id, product_name, product_date, IF(MONTH(product_date)<=3, '第1季度', 
-													IF(MONTH(product_date)<=6, '第2季度', 
+SELECT product_id, product_name, product_date, IF(MONTH(product_date)<=3, '第1季度',
+													IF(MONTH(product_date)<=6, '第2季度',
 														IF(MONTH(product_date)<=9, '第3季度', '第4季度')))
 FROM product;
 
 -- 5. 为表和字段取别名
 /*为表起别名的语法格式: 表名 [AS] 别名; */
--- 课堂示例18：给product表起一个别名tb_prod 
+-- 课堂示例18：给product表起一个别名tb_prod
 SELECT tb_prod.product_name, product_place
 FROM product AS tb_prod;
 
