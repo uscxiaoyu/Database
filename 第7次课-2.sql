@@ -53,6 +53,15 @@ FROM sort RIGHT JOIN subsort ON sort.Sort_ID = subsort.Sort_ID ORDER BY Sort_nam
 SELECT Sort_name, Subsort_ID, SubSort_name
 FROM sort INNER JOIN subsort ON sort.Sort_ID = subsort.Sort_ID
 WHERE sort_name LIKE '%文件%' ORDER BY Subsort_ID DESC;
+
+SELECT a.sort_name, COUNT(b.subsort_id)
+FROM sort a JOIN subsort b ON a.sort_id = b.sort_id
+WHERE sort_name LIKE '%用品%'
+GROUP BY a.sort_name
+HAVING COUNT(b.subsort_id) > 5
+ORDER BY COUNT(b.subsort_id) DESC
+LIMIT 5;
+
 -- 等价于
 SELECT Sort_name, Subsort_ID, SubSort_name
 FROM sort, subsort
