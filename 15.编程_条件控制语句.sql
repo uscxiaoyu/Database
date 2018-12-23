@@ -14,16 +14,16 @@ select product_id into @pid from product where id='10101';
 -- 课堂示例1: 创建函数f, 输入x，如果x<0，计算y=-x;如果x>=0，计算y=x*2，返回y
 delimiter $$
 create function f(x float) returns float
-	no sql
-	begin
-		declare y float;
-		if (x < 0) then
-			set y = -x;
-		else
-			set y = x * 2;
-		end if;
-		return y;
-	end;
+no sql
+begin
+	declare y float;
+	if (x < 0) then
+		set y = -x;
+	else
+		set y = x * 2;
+	end if;
+	return y;
+end;
 $$
 delimiter ;
 
@@ -32,22 +32,22 @@ delimiter ;
 -- sort_id为31的产品返利为价格的40%, 其它返回为5%。
 delimiter $$
 create function cal_rebate_fn (v_p_id char(2)) returns decimal(10,2)
-	reads sql data
-	begin
-		declare v_sortid char(2);
-		declare v_rebate decimal(10, 2);
-		select sort_id into v_sortid from product where product_id = v_p_id;
-		if (v_sortid='11') then
-			select price * 0.1 into v_rebate from product where product_id = v_p_id;
-		elseif (v_sortid='21') then
-			select price * 0.3 into v_rebate from product where product_id = v_p_id;
-		elseif (v_sortid='31') then
-			select price * 0.4 into v_rebate from product where product_id = v_p_id;
-		else
-			select price * 0.05 into v_rebate from product where product_id = v_p_id;
-		end if;
-		return v_rebate;
-	end;
+reads sql data
+begin
+	declare v_sortid char(2);
+	declare v_rebate decimal(10, 2);
+	select sort_id into v_sortid from product where product_id = v_p_id;
+	if (v_sortid='11') then
+		select price * 0.1 into v_rebate from product where product_id = v_p_id;
+	elseif (v_sortid='21') then
+		select price * 0.3 into v_rebate from product where product_id = v_p_id;
+	elseif (v_sortid='31') then
+		select price * 0.4 into v_rebate from product where product_id = v_p_id;
+	else
+		select price * 0.05 into v_rebate from product where product_id = v_p_id;
+	end if;
+	return v_rebate;
+end;
 $$
 delimiter ;
 
@@ -59,18 +59,18 @@ from product limit 5;
 -- (1) 创建函数func, 输入x，当x < -5时，y = x ** 3; 当 -5 <= x < 5 时， y = x; 当 x >= 5 时，y = 2 * x + 1，返回y
 delimiter $$
 create function func(x float) returns float
-	no sql
-	begin
-		declare y float;
-		if (x < -5) then
-			set y = power(x, 3);
-		elseif (x >= 5 and x < 5) then  -- 注意用and运算符
-			set y = x;
-		else
-			set y = 2 * x + 1;
-		end if;
-		return y;
-	end;
+no sql
+begin
+	declare y float;
+	if (x < -5) then
+		set y = power(x, 3);
+	elseif (x >= 5 and x < 5) then  -- 注意用and运算符
+		set y = x;
+	else
+		set y = 2 * x + 1;
+	end if;
+	return y;
+end;
 $$
 delimiter ;
 
@@ -78,23 +78,23 @@ delimiter ;
 -- 如果数量在10和50之间，则p_due = 产品单价 * 数量 * 0.9; 如果数量大于50，则p_due = 产品单价 * 数量 * 0.8.
 delimiter $$
 create function cal_due_fn (v_o_id char(50)) returns decimal(10, 2)
-	reads sql data
-	begin
-		declare v_p_price decimal(10, 2) default 1.0;
-		declare v_quantity int(8) default 1;
-		declare v_due decimal(10, 2) default 0.0;
-		select `product`.price, `order`.quantity into v_p_price, v_quantity
-		from `order` join `product` on `order`.product_id = `product`.product_id
-		where `order`.order_id = v_o_id;
-		if (v_quantity < 10) then
-			set v_due = v_p_price * v_quantity * 0.95;
-		elseif (v_quantity >= 10 and v_quantity <= 50) then
-			set v_due = v_p_price * v_quantity * 0.9;
-		else
-			set v_due = v_p_price * v_quantity * 0.8;
-		end if;
-		return v_due;
-	end;
+reads sql data
+begin
+	declare v_p_price decimal(10, 2) default 1.0;
+	declare v_quantity int(8) default 1;
+	declare v_due decimal(10, 2) default 0.0;
+	select `product`.price, `order`.quantity into v_p_price, v_quantity
+	from `order` join `product` on `order`.product_id = `product`.product_id
+	where `order`.order_id = v_o_id;
+	if (v_quantity < 10) then
+		set v_due = v_p_price * v_quantity * 0.95;
+	elseif (v_quantity >= 10 and v_quantity <= 50) then
+		set v_due = v_p_price * v_quantity * 0.9;
+	else
+		set v_due = v_p_price * v_quantity * 0.8;
+	end if;
+	return v_due;
+end;
 $$
 delimiter ;
 
@@ -118,15 +118,15 @@ create function get_week_fn (week_no int) returns char(20)
 no sql
 begin
 	declare week_day char(20);
-  case week_no
+	case week_no
 		when 0 then set week_day = 'Monday';
-        when 1 then set week_day = 'Tuesday';
-        when 2 then set week_day = 'Wednesday';
-        when 3 then set week_day = 'Thursday';
-        when 4 then set week_day = 'Friday';
-        else set week_day = 'Weekend';
+		when 1 then set week_day = 'Tuesday';
+		when 2 then set week_day = 'Wednesday';
+		when 3 then set week_day = 'Thursday';
+		when 4 then set week_day = 'Friday';
+		else set week_day = 'Weekend';
 	end case;
-    return week_day;
+	return week_day;
 end;
 $$
 delimiter ;
@@ -153,12 +153,12 @@ create function get_sum_fn (n int) returns int
 no sql
 begin
 	declare accum_sum int default 0;
-  declare start_num int default 0;
-  while start_num < n do
+  	declare start_num int default 0;
+  	while start_num < n do
 		set start_num = start_num + 1;
         set accum_sum = start_num + accum_sum;
 	end while;
-  return accum_sum;
+	return accum_sum;
 end;
 $$
 delimiter ;
@@ -176,15 +176,15 @@ create function get_sum_fn2 (n int) returns int
 no sql
 begin
 	declare accum_sum int default 0;
-  declare start_num int default 0;
-  add_num : while true do
+  	declare start_num int default 0;
+  	add_num : while true do
 	set start_num = start_num + 1;
-  set accum_sum = start_num + accum_sum;
-  if (start_num = n) then
+  	set accum_sum = start_num + accum_sum;
+  	if (start_num = n) then
 			leave add_num;
 	end if;
 	end while add_num;
-  return accum_sum;
+	return accum_sum;
 end;
 $$
 delimiter ;
@@ -202,8 +202,8 @@ create function get_sum_fn3 (n int) returns int
 no sql
 begin
 	declare accum_sum int default 0;
-  declare start_num int default 0;
-  add_num : while true do
+  	declare start_num int default 0;
+  	add_num : while true do
 	set start_num = start_num + 1;
     if start_num <= n then
 			if (start_num % 3) = 0 then
@@ -213,7 +213,7 @@ begin
 		else leave add_num;
     end if;
 	end while add_num;
-  return accum_sum;
+  	return accum_sum;
 end;
 $$
 delimiter ;
@@ -235,12 +235,12 @@ create function get_sum_fn4 (n int) returns int
 no sql
 begin
 	declare accum_sum int default 0;
-  declare start_num int default 0;
-  repeat
+	declare start_num int default 0;
+	repeat
 		set start_num = start_num + 1;
     set accum_sum = start_num + accum_sum;
 	until (start_num = n) end repeat;
-  return accum_sum;
+  	return accum_sum;
 end;
 $$
 delimiter ;
@@ -266,8 +266,8 @@ create function get_sum_fn5 (n int) returns int
 no sql
 begin
 	declare accum_sum int default 0;
-  declare start_num int default 0;
-  add_sum : loop
+	declare start_num int default 0;
+	add_sum : loop
 		set start_num = start_num + 1;
     set accum_sum = start_num + accum_sum;
     if start_num = n then
@@ -291,15 +291,15 @@ create function get_prod_fn (m int, n int) returns int
 no sql
 begin
 	declare accum_sum int default m;
-  declare start_num int default 0;
-  add_sum : loop
+	declare start_num int default 0;
+	add_sum : loop
 		set start_num = start_num + 1;
     set accum_sum = start_num * accum_sum;
     if start_num = n then
 			leave add_sum;
 		end if;
 	end loop;
-  return accum_sum;
+  	return accum_sum;
 end;
 $$
 delimiter ;
