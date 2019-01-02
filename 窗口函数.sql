@@ -1,7 +1,6 @@
 use purchase;
 
 -- 查询各产地的平均价格
-
 select
 	product_id, product_name, product_place, price,
     AVG(price) OVER (partition by product_place) AS avg_price
@@ -10,7 +9,7 @@ where product_place is not null
 order by product_place, price;
 
 
-select 
+select
 	product_id, product_name, product_place, price,
     AVG(price) OVER w AS avg_price
 from product
