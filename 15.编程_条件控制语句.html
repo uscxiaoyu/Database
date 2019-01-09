@@ -331,28 +331,31 @@ $$
 <span class="token keyword">end</span> <span class="token keyword">case</span><span class="token punctuation">;</span>
 </pre><h5>&#x8BFE;&#x5802;&#x793A;&#x4F8B;3: &#x521B;&#x5EFA;get_week_fn()&#x51FD;&#x6570;&#xFF0C;&#x4F7F;&#x7528;&#x8BE5;&#x51FD;&#x6570;&#x6839;&#x636E;mysql&#x7CFB;&#x7EDF;&#x65F6;&#x95F4;&#x6253;&#x5370;&#x661F;&#x671F;&#x51E0;</h5>
 <pre data-role="codeBlock" data-info="sql {.line-numbers}" class="language-sql line-numbers"><span class="token keyword">delimiter</span> $$
-<span class="token keyword">create</span> <span class="token keyword">function</span> get_week_fn <span class="token punctuation">(</span>week_no <span class="token keyword">int</span><span class="token punctuation">)</span> <span class="token keyword">returns</span> <span class="token keyword">char</span><span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>
-<span class="token keyword">no</span> <span class="token keyword">sql</span>
-<span class="token keyword">begin</span>
+<span class="token keyword">create</span> <span class="token keyword">function</span> get_week_fn <span class="token punctuation">(</span>p_date <span class="token keyword">date</span><span class="token punctuation">)</span> <span class="token keyword">returns</span> <span class="token keyword">char</span><span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>
+    <span class="token keyword">no</span> <span class="token keyword">sql</span>
+    <span class="token keyword">begin</span>
     <span class="token keyword">declare</span> week_day <span class="token keyword">char</span><span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">case</span> week_no
+    <span class="token keyword">case</span> weekday<span class="token punctuation">(</span>p_date<span class="token punctuation">)</span>
         <span class="token keyword">when</span> <span class="token number">0</span> <span class="token keyword">then</span> <span class="token keyword">set</span> week_day <span class="token operator">=</span> <span class="token string">&apos;Monday&apos;</span><span class="token punctuation">;</span>
-            <span class="token keyword">when</span> <span class="token number">1</span> <span class="token keyword">then</span> <span class="token keyword">set</span> week_day <span class="token operator">=</span> <span class="token string">&apos;Tuesday&apos;</span><span class="token punctuation">;</span>
-            <span class="token keyword">when</span> <span class="token number">2</span> <span class="token keyword">then</span> <span class="token keyword">set</span> week_day <span class="token operator">=</span> <span class="token string">&apos;Wednesday&apos;</span><span class="token punctuation">;</span>
-            <span class="token keyword">when</span> <span class="token number">3</span> <span class="token keyword">then</span> <span class="token keyword">set</span> week_day <span class="token operator">=</span> <span class="token string">&apos;Thursday&apos;</span><span class="token punctuation">;</span>
-            <span class="token keyword">when</span> <span class="token number">4</span> <span class="token keyword">then</span> <span class="token keyword">set</span> week_day <span class="token operator">=</span> <span class="token string">&apos;Friday&apos;</span><span class="token punctuation">;</span>
-            <span class="token keyword">else</span> <span class="token keyword">set</span> week_day <span class="token operator">=</span> <span class="token string">&apos;Weekend&apos;</span><span class="token punctuation">;</span>
+        <span class="token keyword">when</span> <span class="token number">1</span> <span class="token keyword">then</span> <span class="token keyword">set</span> week_day <span class="token operator">=</span> <span class="token string">&apos;Tuesday&apos;</span><span class="token punctuation">;</span>
+        <span class="token keyword">when</span> <span class="token number">2</span> <span class="token keyword">then</span> <span class="token keyword">set</span> week_day <span class="token operator">=</span> <span class="token string">&apos;Wednesday&apos;</span><span class="token punctuation">;</span>
+        <span class="token keyword">when</span> <span class="token number">3</span> <span class="token keyword">then</span> <span class="token keyword">set</span> week_day <span class="token operator">=</span> <span class="token string">&apos;Thursday&apos;</span><span class="token punctuation">;</span>
+        <span class="token keyword">when</span> <span class="token number">4</span> <span class="token keyword">then</span> <span class="token keyword">set</span> week_day <span class="token operator">=</span> <span class="token string">&apos;Friday&apos;</span><span class="token punctuation">;</span>
+        <span class="token keyword">else</span> <span class="token keyword">set</span> week_day <span class="token operator">=</span> <span class="token string">&apos;Weekend&apos;</span><span class="token punctuation">;</span>
     <span class="token keyword">end</span> <span class="token keyword">case</span><span class="token punctuation">;</span>
-<span class="token keyword">return</span> week_day<span class="token punctuation">;</span>
-<span class="token keyword">end</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> week_day<span class="token punctuation">;</span>
+    <span class="token keyword">end</span><span class="token punctuation">;</span>
 $$
 <span class="token keyword">delimiter</span> <span class="token punctuation">;</span>
 
 <span class="token keyword">drop</span> <span class="token keyword">function</span> get_week_fn<span class="token punctuation">;</span>
 
 <span class="token keyword">select</span> weekday<span class="token punctuation">(</span><span class="token function">now</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token keyword">select</span> <span class="token function">now</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> get_week_fn<span class="token punctuation">(</span>weekday<span class="token punctuation">(</span><span class="token function">now</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">-- weekday(&#x65E5;&#x671F;), 0-Mon, 1-Tus....</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></pre><hr>
+
+<span class="token keyword">select</span> product_id<span class="token punctuation">,</span> product_name<span class="token punctuation">,</span> product_date<span class="token punctuation">,</span> get_week_fn<span class="token punctuation">(</span>product_date<span class="token punctuation">)</span> <span class="token keyword">as</span> week
+<span class="token keyword">from</span> Product
+<span class="token keyword">limit</span> <span class="token number">10</span><span class="token punctuation">;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></pre><hr>
 <h3>3. &#x5FAA;&#x73AF;</h3>
 <h5>3.1 while</h5>
 <p>&#x5F53;&#x6761;&#x4EF6;&#x8868;&#x8FBE;&#x5F0F;&#x4E3A;true&#x65F6;&#xFF0C;&#x53CD;&#x590D;&#x6267;&#x884C;&#x5FAA;&#x73AF;&#x4F53;&#xFF0C;&#x76F4;&#x5230;&#x8868;&#x8FBE;&#x5F0F;&#x503C;&#x4E3A;false&#x3002;&#x8BED;&#x6CD5;&#x7ED3;&#x6784;&#xFF1A;</p>
@@ -362,91 +365,92 @@ $$
 </pre><h5>&#x8BFE;&#x5802;&#x793A;&#x4F8B;4&#xFF1A;&#x521B;&#x5EFA;&#x51FD;&#x6570;get_sum_fn&#xFF0C;&#x8FD4;&#x56DE;&#x6574;&#x6570;1&#x5230;n&#x7684;&#x7D2F;&#x52A0;&#x548C;</h5>
 <pre data-role="codeBlock" data-info="sql {.line-numbers}" class="language-sql line-numbers"><span class="token keyword">delimiter</span> $$
 <span class="token keyword">create</span> <span class="token keyword">function</span> get_sum_fn <span class="token punctuation">(</span>n <span class="token keyword">int</span><span class="token punctuation">)</span> <span class="token keyword">returns</span> <span class="token keyword">int</span>
-<span class="token keyword">no</span> <span class="token keyword">sql</span>
-<span class="token keyword">begin</span>
-    <span class="token keyword">declare</span> accum_sum <span class="token keyword">int</span> <span class="token keyword">default</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    <span class="token keyword">declare</span> start_num <span class="token keyword">int</span> <span class="token keyword">default</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    <span class="token keyword">while</span> start_num <span class="token operator">&lt;</span> n <span class="token keyword">do</span>
-        <span class="token keyword">set</span> start_num <span class="token operator">=</span> start_num <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span>
-        <span class="token keyword">set</span> accum_sum <span class="token operator">=</span> start_num <span class="token operator">+</span> accum_sum<span class="token punctuation">;</span>
-    <span class="token keyword">end</span> <span class="token keyword">while</span><span class="token punctuation">;</span>
-<span class="token keyword">return</span> accum_sum<span class="token punctuation">;</span>
-<span class="token keyword">end</span><span class="token punctuation">;</span>
+    <span class="token keyword">no</span> <span class="token keyword">sql</span>
+    <span class="token keyword">begin</span>
+        <span class="token keyword">declare</span> accum_sum <span class="token keyword">int</span> <span class="token keyword">default</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token keyword">declare</span> start_num <span class="token keyword">int</span> <span class="token keyword">default</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token keyword">while</span> start_num <span class="token operator">&lt;</span> n <span class="token keyword">do</span>
+            <span class="token keyword">set</span> start_num <span class="token operator">=</span> start_num <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span>
+            <span class="token keyword">set</span> accum_sum <span class="token operator">=</span> start_num <span class="token operator">+</span> accum_sum<span class="token punctuation">;</span>
+        <span class="token keyword">end</span> <span class="token keyword">while</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> accum_sum<span class="token punctuation">;</span>
+    <span class="token keyword">end</span><span class="token punctuation">;</span>
 $$
 <span class="token keyword">delimiter</span> <span class="token punctuation">;</span>
 
 <span class="token keyword">select</span> get_sum_fn<span class="token punctuation">(</span><span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></pre><hr>
-<h5>3.2 leave</h5>
-<p>&#x7528;&#x4E8E;&#x8DF3;&#x51FA;&#x5F53;&#x524D;&#x7684;&#x5FAA;&#x5316;&#x8BED;&#x53E5;&#x3002;&#x8BED;&#x6CD5;&#xFF1A;</p>
+<h5>3.2 leave <sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup></h5>
+<p>&#x7528;&#x4E8E;&#x8DF3;&#x51FA;&#x5F53;&#x524D;&#x7684;&#x5FAA;&#x5316;&#x8BED;&#x53E5;&#x3002;&#x8BED;&#x6CD5;&#xFF1A;</p>
 <pre data-role="codeBlock" data-info="sql" class="language-sql"><span class="token keyword">leave</span> &#x5FAA;&#x73AF;&#x6807;&#x7B7E;<span class="token punctuation">;</span>
 </pre><h5>&#x8BFE;&#x5802;&#x793A;&#x4F8B;5&#xFF1A;&#x57FA;&#x4E8E;leave&#x8BED;&#x53E5;&#xFF0C;&#x521B;&#x5EFA;&#x51FD;&#x6570;get_sum_fn2&#xFF0C;&#x8FD4;&#x56DE;&#x6574;&#x6570;1&#x5230;n&#x7684;&#x7D2F;&#x52A0;&#x548C;</h5>
 <pre data-role="codeBlock" data-info="sql {.line-numbers}" class="language-sql line-numbers"><span class="token keyword">delimiter</span> $$
 <span class="token keyword">create</span> <span class="token keyword">function</span> get_sum_fn2 <span class="token punctuation">(</span>n <span class="token keyword">int</span><span class="token punctuation">)</span> <span class="token keyword">returns</span> <span class="token keyword">int</span>
-<span class="token keyword">no</span> <span class="token keyword">sql</span>
-<span class="token keyword">begin</span>
-    <span class="token keyword">declare</span> accum_sum <span class="token keyword">int</span> <span class="token keyword">default</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    <span class="token keyword">declare</span> start_num <span class="token keyword">int</span> <span class="token keyword">default</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    add_num : <span class="token keyword">while</span> <span class="token boolean">true</span> <span class="token keyword">do</span>
-        <span class="token keyword">set</span> start_num <span class="token operator">=</span> start_num <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span>
-        <span class="token keyword">set</span> accum_sum <span class="token operator">=</span> start_num <span class="token operator">+</span> accum_sum<span class="token punctuation">;</span>
-        <span class="token keyword">if</span> <span class="token punctuation">(</span>start_num <span class="token operator">=</span> n<span class="token punctuation">)</span> <span class="token keyword">then</span>
-            <span class="token keyword">leave</span> add_num<span class="token punctuation">;</span>
-        <span class="token keyword">end</span> <span class="token keyword">if</span><span class="token punctuation">;</span>
-    <span class="token keyword">end</span> <span class="token keyword">while</span> add_num<span class="token punctuation">;</span>
-<span class="token keyword">return</span> accum_sum<span class="token punctuation">;</span>
-<span class="token keyword">end</span><span class="token punctuation">;</span>
+    <span class="token keyword">no</span> <span class="token keyword">sql</span>
+    <span class="token keyword">begin</span>
+        <span class="token keyword">declare</span> accum_sum <span class="token keyword">int</span> <span class="token keyword">default</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token keyword">declare</span> start_num <span class="token keyword">int</span> <span class="token keyword">default</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        add_num : <span class="token keyword">while</span> <span class="token boolean">true</span> <span class="token keyword">do</span>
+            <span class="token keyword">set</span> start_num <span class="token operator">=</span> start_num <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span>
+            <span class="token keyword">set</span> accum_sum <span class="token operator">=</span> start_num <span class="token operator">+</span> accum_sum<span class="token punctuation">;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>start_num <span class="token operator">=</span> n<span class="token punctuation">)</span> <span class="token keyword">then</span>
+                <span class="token keyword">leave</span> add_num<span class="token punctuation">;</span>
+            <span class="token keyword">end</span> <span class="token keyword">if</span><span class="token punctuation">;</span>
+        <span class="token keyword">end</span> <span class="token keyword">while</span> add_num<span class="token punctuation">;</span>
+    <span class="token keyword">return</span> accum_sum<span class="token punctuation">;</span>
+    <span class="token keyword">end</span><span class="token punctuation">;</span>
 $$
 <span class="token keyword">delimiter</span> <span class="token punctuation">;</span>
 
 <span class="token keyword">select</span> get_sum_fn2<span class="token punctuation">(</span><span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></pre><hr>
-<h4>3.3 iterate</h4>
+<h4>3.3 iterate <sup class="footnote-ref"><a href="#fn2" id="fnref2">[2]</a></sup></h4>
 <p>&#x7528;&#x4E8E;&#x8DF3;&#x51FA;&#x672C;&#x6B21;&#x5FAA;&#x73AF;&#xFF0C;&#x7EE7;&#x7EED;&#x4E0B;&#x6B21;&#x5FAA;&#x73AF;&#x3002;&#x8BED;&#x6CD5;&#xFF1A;</p>
 <pre data-role="codeBlock" data-info="sql" class="language-sql"><span class="token keyword">iterate</span> &#x5FAA;&#x73AF;&#x6807;&#x7B7E;<span class="token punctuation">;</span>
 </pre><h5>&#x8BFE;&#x5802;&#x793A;&#x4F8B;6&#xFF1A;&#x57FA;&#x4E8E;iterate&#xFF0C;&#x5BF9;1~n&#x6240;&#x6709;&#x80FD;&#x88AB;3&#x6574;&#x9664;&#x7684;&#x6570;&#x52A0;&#x548C;</h5>
 <pre data-role="codeBlock" data-info="sql {.line-numbers}" class="language-sql line-numbers"><span class="token keyword">delimiter</span> $$
 <span class="token keyword">create</span> <span class="token keyword">function</span> get_sum_fn3 <span class="token punctuation">(</span>n <span class="token keyword">int</span><span class="token punctuation">)</span> <span class="token keyword">returns</span> <span class="token keyword">int</span>
-<span class="token keyword">no</span> <span class="token keyword">sql</span>
-<span class="token keyword">begin</span>
-    <span class="token keyword">declare</span> accum_sum <span class="token keyword">int</span> <span class="token keyword">default</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    <span class="token keyword">declare</span> start_num <span class="token keyword">int</span> <span class="token keyword">default</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    add_num : <span class="token keyword">while</span> <span class="token boolean">true</span> <span class="token keyword">do</span>
-    <span class="token keyword">set</span> start_num <span class="token operator">=</span> start_num <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span>
-        <span class="token keyword">if</span> start_num <span class="token operator">&lt;=</span> n <span class="token keyword">then</span>
-            <span class="token keyword">if</span> <span class="token punctuation">(</span>start_num <span class="token operator">%</span> <span class="token number">3</span><span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token number">0</span> <span class="token keyword">then</span>
-            <span class="token keyword">set</span> accum_sum <span class="token operator">=</span> accum_sum <span class="token operator">+</span> start_num<span class="token punctuation">;</span>
-            <span class="token keyword">else</span> <span class="token keyword">iterate</span> add_num<span class="token punctuation">;</span>
+    <span class="token keyword">no</span> <span class="token keyword">sql</span>
+    <span class="token keyword">begin</span>
+        <span class="token keyword">declare</span> accum_sum <span class="token keyword">int</span> <span class="token keyword">default</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token keyword">declare</span> start_num <span class="token keyword">int</span> <span class="token keyword">default</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        add_num : <span class="token keyword">while</span> <span class="token boolean">true</span> <span class="token keyword">do</span>
+        <span class="token keyword">set</span> start_num <span class="token operator">=</span> start_num <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span>
+            <span class="token keyword">if</span> start_num <span class="token operator">&lt;=</span> n <span class="token keyword">then</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>start_num <span class="token operator">%</span> <span class="token number">3</span><span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token number">0</span> <span class="token keyword">then</span>
+                <span class="token keyword">set</span> accum_sum <span class="token operator">=</span> accum_sum <span class="token operator">+</span> start_num<span class="token punctuation">;</span>
+                <span class="token keyword">else</span> <span class="token keyword">iterate</span> add_num<span class="token punctuation">;</span>
+                <span class="token keyword">end</span> <span class="token keyword">if</span><span class="token punctuation">;</span>
+            <span class="token keyword">else</span> 
+                <span class="token keyword">leave</span> add_num<span class="token punctuation">;</span>
             <span class="token keyword">end</span> <span class="token keyword">if</span><span class="token punctuation">;</span>
-        <span class="token keyword">else</span> <span class="token keyword">leave</span> add_num<span class="token punctuation">;</span>
-        <span class="token keyword">end</span> <span class="token keyword">if</span><span class="token punctuation">;</span>
-    <span class="token keyword">end</span> <span class="token keyword">while</span> add_num<span class="token punctuation">;</span>
-<span class="token keyword">return</span> accum_sum<span class="token punctuation">;</span>
-<span class="token keyword">end</span><span class="token punctuation">;</span>
+        <span class="token keyword">end</span> <span class="token keyword">while</span> add_num<span class="token punctuation">;</span>
+    <span class="token keyword">return</span> accum_sum<span class="token punctuation">;</span>
+    <span class="token keyword">end</span><span class="token punctuation">;</span>
 $$
 <span class="token keyword">delimiter</span> <span class="token punctuation">;</span>
 
 <span class="token keyword">select</span> get_sum_fn3<span class="token punctuation">(</span><span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></pre><hr>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></pre><hr>
 <h5>3.4 repeat</h5>
 <p>&#x5F53;&#x6761;&#x4EF6;&#x8868;&#x8FBE;&#x5F0F;&#x7684;&#x503C;&#x4E3A;false&#x65F6;&#xFF0C;&#x53CD;&#x590D;&#x6267;&#x884C;&#x5FAA;&#x73AF;&#xFF0C;&#x76F4;&#x5230;&#x6761;&#x4EF6;&#x8868;&#x8FBE;&#x5F0F;&#x7684;&#x503C;&#x4E3A;true&#x3002;&#x8BED;&#x6CD5;&#xFF1A;</p>
 <pre data-role="codeBlock" data-info="sql" class="language-sql"><span class="token punctuation">[</span>&#x5FAA;&#x73AF;&#x6807;&#x7B7E;:<span class="token punctuation">]</span>repeate
 &#x5FAA;&#x73AF;&#x4F53;<span class="token punctuation">;</span>
 until &#x6761;&#x4EF6;&#x8868;&#x8FBE;&#x5F0F;
-<span class="token keyword">end</span> repreat<span class="token punctuation">[</span>&#x5FAA;&#x73AF;&#x6807;&#x7B7E;<span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token keyword">end</span> <span class="token keyword">repeat</span><span class="token punctuation">[</span>&#x5FAA;&#x73AF;&#x6807;&#x7B7E;<span class="token punctuation">]</span><span class="token punctuation">;</span>
 </pre><h5>&#x8BFE;&#x5802;&#x793A;&#x4F8B;7&#xFF1A;&#x57FA;&#x4E8E;repeat&#xFF0C;&#x5B9E;&#x73B0;&#x4ECE;1&#x52A0;&#x5230;n</h5>
 <pre data-role="codeBlock" data-info="sql {.line-numbers}" class="language-sql line-numbers"><span class="token keyword">delimiter</span> $$
 <span class="token keyword">create</span> <span class="token keyword">function</span> get_sum_fn4 <span class="token punctuation">(</span>n <span class="token keyword">int</span><span class="token punctuation">)</span> <span class="token keyword">returns</span> <span class="token keyword">int</span>
-<span class="token keyword">no</span> <span class="token keyword">sql</span>
-<span class="token keyword">begin</span>
-    <span class="token keyword">declare</span> accum_sum <span class="token keyword">int</span> <span class="token keyword">default</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    <span class="token keyword">declare</span> start_num <span class="token keyword">int</span> <span class="token keyword">default</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    <span class="token keyword">repeat</span>
-        <span class="token keyword">set</span> start_num <span class="token operator">=</span> start_num <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span>
-    <span class="token keyword">set</span> accum_sum <span class="token operator">=</span> start_num <span class="token operator">+</span> accum_sum<span class="token punctuation">;</span>
-    until <span class="token punctuation">(</span>start_num <span class="token operator">=</span> n<span class="token punctuation">)</span> <span class="token keyword">end</span> <span class="token keyword">repeat</span><span class="token punctuation">;</span>
-<span class="token keyword">return</span> accum_sum<span class="token punctuation">;</span>
-<span class="token keyword">end</span><span class="token punctuation">;</span>
+    <span class="token keyword">no</span> <span class="token keyword">sql</span>
+    <span class="token keyword">begin</span>
+        <span class="token keyword">declare</span> accum_sum <span class="token keyword">int</span> <span class="token keyword">default</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token keyword">declare</span> start_num <span class="token keyword">int</span> <span class="token keyword">default</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token keyword">repeat</span>
+            <span class="token keyword">set</span> start_num <span class="token operator">=</span> start_num <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span>
+        <span class="token keyword">set</span> accum_sum <span class="token operator">=</span> start_num <span class="token operator">+</span> accum_sum<span class="token punctuation">;</span>
+        until <span class="token punctuation">(</span>start_num <span class="token operator">=</span> n<span class="token punctuation">)</span> <span class="token keyword">end</span> <span class="token keyword">repeat</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> accum_sum<span class="token punctuation">;</span>
+    <span class="token keyword">end</span><span class="token punctuation">;</span>
 $$
 <span class="token keyword">delimiter</span> <span class="token punctuation">;</span>
 
@@ -465,19 +469,19 @@ $$
 </pre><h5>&#x8BFE;&#x5802;&#x793A;&#x4F8B;8&#xFF1A;&#x57FA;&#x4E8E;loop&#xFF0C;&#x5B9E;&#x73B0;&#x4ECE;0&#x52A0;&#x5230;n</h5>
 <pre data-role="codeBlock" data-info="sql {.line-numbers}" class="language-sql line-numbers"><span class="token keyword">delimiter</span> $$
 <span class="token keyword">create</span> <span class="token keyword">function</span> get_sum_fn5 <span class="token punctuation">(</span>n <span class="token keyword">int</span><span class="token punctuation">)</span> <span class="token keyword">returns</span> <span class="token keyword">int</span>
-<span class="token keyword">no</span> <span class="token keyword">sql</span>
-<span class="token keyword">begin</span>
-    <span class="token keyword">declare</span> accum_sum <span class="token keyword">int</span> <span class="token keyword">default</span> <span class="token number">0</span><span class="token punctuation">;</span>
-  <span class="token keyword">declare</span> start_num <span class="token keyword">int</span> <span class="token keyword">default</span> <span class="token number">0</span><span class="token punctuation">;</span>
-  add_sum : <span class="token keyword">loop</span>
-        <span class="token keyword">set</span> start_num <span class="token operator">=</span> start_num <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span>
-    <span class="token keyword">set</span> accum_sum <span class="token operator">=</span> start_num <span class="token operator">+</span> accum_sum<span class="token punctuation">;</span>
-    <span class="token keyword">if</span> start_num <span class="token operator">=</span> n <span class="token keyword">then</span>
-            <span class="token keyword">leave</span> add_sum<span class="token punctuation">;</span>
-        <span class="token keyword">end</span> <span class="token keyword">if</span><span class="token punctuation">;</span>
-    <span class="token keyword">end</span> <span class="token keyword">loop</span><span class="token punctuation">;</span>
-<span class="token keyword">return</span> accum_sum<span class="token punctuation">;</span>
-<span class="token keyword">end</span><span class="token punctuation">;</span>
+    <span class="token keyword">no</span> <span class="token keyword">sql</span>
+    <span class="token keyword">begin</span>
+        <span class="token keyword">declare</span> accum_sum <span class="token keyword">int</span> <span class="token keyword">default</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token keyword">declare</span> start_num <span class="token keyword">int</span> <span class="token keyword">default</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    add_sum : <span class="token keyword">loop</span>
+            <span class="token keyword">set</span> start_num <span class="token operator">=</span> start_num <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span>
+        <span class="token keyword">set</span> accum_sum <span class="token operator">=</span> start_num <span class="token operator">+</span> accum_sum<span class="token punctuation">;</span>
+        <span class="token keyword">if</span> start_num <span class="token operator">=</span> n <span class="token keyword">then</span>
+                <span class="token keyword">leave</span> add_sum<span class="token punctuation">;</span>
+            <span class="token keyword">end</span> <span class="token keyword">if</span><span class="token punctuation">;</span>
+        <span class="token keyword">end</span> <span class="token keyword">loop</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> accum_sum<span class="token punctuation">;</span>
+    <span class="token keyword">end</span><span class="token punctuation">;</span>
 $$
 <span class="token keyword">delimiter</span> <span class="token punctuation">;</span>
 
@@ -486,28 +490,110 @@ $$
 <span class="token keyword">select</span> get_sum_fn5<span class="token punctuation">(</span><span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></pre><hr>
 <h5>&#x8BFE;&#x5802;&#x7EC3;&#x4E60;2&#xFF1A;</h5>
-<p>&#x9009;&#x7528;&#x4E00;&#x79CD;&#x5FAA;&#x73AF;&#x7ED3;&#x6784;&#xFF0C;&#x7F16;&#x5199;&#x51FD;&#x6570;get_prod_fn&#xFF0C;&#x5B9E;&#x73B0;&#x4ECE;m&#x5230;n&#x7684;&#x7D2F;&#x4E58;</p>
+<ol>
+<li>&#x9009;&#x7528;&#x4E00;&#x79CD;&#x5FAA;&#x73AF;&#x7ED3;&#x6784;&#xFF0C;&#x7F16;&#x5199;&#x51FD;&#x6570;get_prod_fn&#xFF0C;&#x5B9E;&#x73B0;&#x4ECE;m&#x5230;n&#x7684;&#x7D2F;&#x4E58;</li>
+</ol>
 <pre data-role="codeBlock" data-info="sql {.line-numbers}" class="language-sql line-numbers"><span class="token comment">-- loop</span>
 <span class="token keyword">delimiter</span> $$
 <span class="token keyword">create</span> <span class="token keyword">function</span> get_prod_fn <span class="token punctuation">(</span>m <span class="token keyword">int</span><span class="token punctuation">,</span> n <span class="token keyword">int</span><span class="token punctuation">)</span> <span class="token keyword">returns</span> <span class="token keyword">int</span>
-<span class="token keyword">no</span> <span class="token keyword">sql</span>
-<span class="token keyword">begin</span>
-    <span class="token keyword">declare</span> accum_sum <span class="token keyword">int</span> <span class="token keyword">default</span> m<span class="token punctuation">;</span>
-    <span class="token keyword">declare</span> start_num <span class="token keyword">int</span> <span class="token keyword">default</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    add_sum : <span class="token keyword">loop</span>
-        <span class="token keyword">set</span> start_num <span class="token operator">=</span> start_num <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span>
-        <span class="token keyword">set</span> accum_sum <span class="token operator">=</span> start_num <span class="token operator">*</span> accum_sum<span class="token punctuation">;</span>
-        <span class="token keyword">if</span> start_num <span class="token operator">=</span> n <span class="token keyword">then</span>
-            <span class="token keyword">leave</span> add_sum<span class="token punctuation">;</span>
-        <span class="token keyword">end</span> <span class="token keyword">if</span><span class="token punctuation">;</span>
-    <span class="token keyword">end</span> <span class="token keyword">loop</span><span class="token punctuation">;</span>
-<span class="token keyword">return</span> accum_sum<span class="token punctuation">;</span>
-<span class="token keyword">end</span><span class="token punctuation">;</span>
+    <span class="token keyword">no</span> <span class="token keyword">sql</span>
+    <span class="token keyword">begin</span>
+        <span class="token keyword">declare</span> accum_sum <span class="token keyword">int</span> <span class="token keyword">default</span> m<span class="token punctuation">;</span>
+        <span class="token keyword">declare</span> start_num <span class="token keyword">int</span> <span class="token keyword">default</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        add_sum : <span class="token keyword">loop</span>
+            <span class="token keyword">set</span> start_num <span class="token operator">=</span> start_num <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span>
+            <span class="token keyword">set</span> accum_sum <span class="token operator">=</span> start_num <span class="token operator">*</span> accum_sum<span class="token punctuation">;</span>
+            <span class="token keyword">if</span> start_num <span class="token operator">=</span> n <span class="token keyword">then</span>
+                <span class="token keyword">leave</span> add_sum<span class="token punctuation">;</span>
+            <span class="token keyword">end</span> <span class="token keyword">if</span><span class="token punctuation">;</span>
+        <span class="token keyword">end</span> <span class="token keyword">loop</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> accum_sum<span class="token punctuation">;</span>
+    <span class="token keyword">end</span><span class="token punctuation">;</span>
 $$
 <span class="token keyword">delimiter</span> <span class="token punctuation">;</span>
 
 <span class="token keyword">select</span> get_prod_fn<span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></pre>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></pre><pre data-role="codeBlock" data-info="sql {.line-numbers}" class="language-sql line-numbers"><span class="token comment">-- repeat</span>
+<span class="token keyword">delimiter</span> $$
+<span class="token keyword">create</span> <span class="token keyword">function</span> get_prod_fn2 <span class="token punctuation">(</span>m <span class="token keyword">int</span><span class="token punctuation">,</span> n <span class="token keyword">int</span><span class="token punctuation">)</span> <span class="token keyword">returns</span> <span class="token keyword">bigint</span>
+    <span class="token keyword">no</span> <span class="token keyword">sql</span>
+    <span class="token keyword">begin</span>
+    <span class="token keyword">declare</span> accum_sum <span class="token keyword">bigint</span> <span class="token keyword">default</span> <span class="token number">1</span><span class="token punctuation">;</span>
+    <span class="token keyword">declare</span> num <span class="token keyword">int</span> <span class="token keyword">default</span> m<span class="token punctuation">;</span>
+    <span class="token keyword">repeat</span>
+        <span class="token keyword">set</span> accum_sum <span class="token operator">=</span> num <span class="token operator">*</span> accum_sum<span class="token punctuation">;</span>
+        <span class="token keyword">set</span> num <span class="token operator">=</span> num <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span>
+    until <span class="token punctuation">(</span>num <span class="token operator">=</span> n <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token keyword">end</span> <span class="token keyword">repeat</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> accum_sum<span class="token punctuation">;</span>
+<span class="token keyword">end</span><span class="token punctuation">;</span>
+$$
+<span class="token keyword">delimiter</span> <span class="token punctuation">;</span>
+
+<span class="token keyword">select</span> get_prod_fn2<span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">,</span> <span class="token number">15</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></pre><pre data-role="codeBlock" data-info="sql {.line-numbers}" class="language-sql line-numbers"><span class="token comment">-- while</span>
+<span class="token keyword">delimiter</span> $$
+<span class="token keyword">create</span> <span class="token keyword">function</span> get_prod_fn3 <span class="token punctuation">(</span>m <span class="token keyword">int</span><span class="token punctuation">,</span> n <span class="token keyword">int</span><span class="token punctuation">)</span> <span class="token keyword">returns</span> <span class="token keyword">bigint</span>
+    <span class="token keyword">no</span> <span class="token keyword">sql</span>
+    <span class="token keyword">begin</span>
+    <span class="token keyword">declare</span> accum_sum <span class="token keyword">bigint</span> <span class="token keyword">default</span> <span class="token number">1</span><span class="token punctuation">;</span>
+    <span class="token keyword">declare</span> num <span class="token keyword">int</span> <span class="token keyword">default</span> m<span class="token punctuation">;</span>
+    <span class="token keyword">while</span> num <span class="token operator">&lt;=</span> n <span class="token keyword">do</span>
+        <span class="token keyword">set</span> accum_sum <span class="token operator">=</span> num <span class="token operator">*</span> accum_sum<span class="token punctuation">;</span>
+        <span class="token keyword">set</span> num <span class="token operator">=</span> num <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span>
+    <span class="token keyword">end</span> <span class="token keyword">while</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> accum_sum<span class="token punctuation">;</span>
+    <span class="token keyword">end</span><span class="token punctuation">;</span>
+$$
+<span class="token keyword">delimiter</span> <span class="token punctuation">;</span>
+
+<span class="token keyword">drop</span> <span class="token keyword">function</span> get_prod_fn3<span class="token punctuation">;</span>
+
+<span class="token keyword">select</span> get_prod_fn3<span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">,</span> <span class="token number">15</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></pre><ol start="2">
+<li>&#x9009;&#x62E9;&#x4E00;&#x79CD;&#x5FAA;&#x73AF;&#x7ED3;&#x6784;&#xFF0C;&#x7F16;&#x5199;&#x7A0B;&#x5E8F;&#x6C42;&#x4E09;&#x4F4D;&#x6C34;&#x4ED9;&#x82B1;&#x6570;&#x4E4B;&#x548C; <sup class="footnote-ref"><a href="#fn3" id="fnref3">[3]</a></sup>&#x3002;</li>
+</ol>
+<pre data-role="codeBlock" data-info="sql {.line-numbers}" class="language-sql line-numbers"><span class="token keyword">delimiter</span> $$
+<span class="token keyword">create</span> <span class="token keyword">function</span> shuixian_fn<span class="token punctuation">(</span>n <span class="token keyword">int</span><span class="token punctuation">)</span> <span class="token keyword">returns</span> <span class="token keyword">int</span>
+    <span class="token keyword">no</span> <span class="token keyword">sql</span>
+    <span class="token keyword">begin</span>
+        <span class="token keyword">declare</span> sum_num <span class="token keyword">int</span> <span class="token keyword">default</span> <span class="token number">0</span><span class="token punctuation">;</span> <span class="token comment">-- &#x6C42;&#x548C;&#x53D8;&#x91CF;&#x521D;&#x59CB;&#x503C;&#x4E3A;0</span>
+        <span class="token keyword">declare</span> num <span class="token keyword">int</span> <span class="token keyword">default</span> <span class="token number">100</span><span class="token punctuation">;</span>
+        <span class="token keyword">declare</span> bai <span class="token keyword">int</span><span class="token punctuation">;</span>
+        <span class="token keyword">declare</span> shi <span class="token keyword">int</span><span class="token punctuation">;</span>
+        <span class="token keyword">declare</span> ge <span class="token keyword">int</span><span class="token punctuation">;</span>
+        add_sum : <span class="token keyword">loop</span>
+            <span class="token keyword">set</span> bai <span class="token operator">=</span> num <span class="token operator">div</span> <span class="token number">100</span><span class="token punctuation">;</span>
+            <span class="token keyword">set</span> shi <span class="token operator">=</span> <span class="token punctuation">(</span>num <span class="token operator">div</span> <span class="token number">10</span><span class="token punctuation">)</span> mod <span class="token number">10</span><span class="token punctuation">;</span>
+            <span class="token keyword">set</span> ge <span class="token operator">=</span>  num mod <span class="token number">10</span><span class="token punctuation">;</span>
+            <span class="token keyword">if</span> power<span class="token punctuation">(</span>bai<span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">)</span> <span class="token operator">+</span> power<span class="token punctuation">(</span>shi<span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">)</span> <span class="token operator">+</span> power<span class="token punctuation">(</span>ge<span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">)</span> <span class="token operator">=</span> num <span class="token keyword">then</span>
+                <span class="token keyword">set</span> sum_num <span class="token operator">=</span> sum_num <span class="token operator">+</span> num<span class="token punctuation">;</span>
+            <span class="token keyword">end</span> <span class="token keyword">if</span><span class="token punctuation">;</span>
+            <span class="token keyword">set</span> num <span class="token operator">=</span> num <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span>
+            <span class="token keyword">if</span> num <span class="token operator">=</span> n <span class="token keyword">then</span>
+                <span class="token keyword">leave</span> add_sum<span class="token punctuation">;</span>
+            <span class="token keyword">end</span> <span class="token keyword">if</span><span class="token punctuation">;</span>
+        <span class="token keyword">end</span> <span class="token keyword">loop</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> sum_num<span class="token punctuation">;</span>
+    <span class="token keyword">end</span><span class="token punctuation">;</span>
+$$
+<span class="token keyword">delimiter</span> <span class="token punctuation">;</span>
+
+<span class="token keyword">drop</span> <span class="token keyword">function</span> shuixian_fn<span class="token punctuation">;</span>
+
+<span class="token keyword">select</span> <span class="token number">153</span> <span class="token operator">div</span> <span class="token number">100</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token number">153</span> <span class="token operator">div</span> <span class="token number">10</span><span class="token punctuation">)</span> mod <span class="token number">10</span><span class="token punctuation">,</span> <span class="token number">153</span> mod <span class="token number">10</span><span class="token punctuation">;</span>
+<span class="token keyword">select</span> shuixian_fn<span class="token punctuation">(</span><span class="token number">500</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></pre><hr class="footnotes-sep">
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn1" class="footnote-item"><p>&#x76F8;&#x5F53;&#x4E8E;python&#x4E2D;&#x7684;break&#x8BED;&#x53E5;. <a href="#fnref1" class="footnote-backref">&#x21A9;&#xFE0E;</a></p>
+</li>
+<li id="fn2" class="footnote-item"><p>&#x76F8;&#x5F53;&#x4E8E;python&#x4E2D;&#x7684;continue&#x8BED;&#x53E5;. <a href="#fnref2" class="footnote-backref">&#x21A9;&#xFE0E;</a></p>
+</li>
+<li id="fn3" class="footnote-item"><p>&#x6C34;&#x4ED9;&#x82B1;&#x6570;: &#x5BF9;&#x5E94;&#x4E09;&#x4F4D;&#x6570;i&#xFF0C;&#x5982;&#x679C;&#x5B83;&#x7684;&#x767E;&#x4F4D;&#x3001;&#x5341;&#x4F4D;&#x548C;&#x5404;&#x4F4D;&#x7ACB;&#x65B9;&#x4E4B;&#x548C;&#x7B49;&#x4E8E;&#x5B83;&#x672C;&#x8EAB;&#xFF0C;&#x5219;&#x8FD9;&#x4E2A;&#x6570;&#x4E3A;&#x6C34;&#x4ED9;&#x82B1;&#x6570;&#x3002;&#x4F8B;&#x5982;153&#xFF0C;&#x7531;&#x4E8E;1<sup>3</sup>+5<sup>3</sup>+3<sup>3</sup>=155&#xFF0C;&#x5219;153&#x6C34;&#x4ED9;&#x82B1;&#x6570;&#x3002; <a href="#fnref3" class="footnote-backref">&#x21A9;&#xFE0E;</a></p>
+</li>
+</ol>
+</section>
+
       </div>
       
       

@@ -114,11 +114,11 @@ end case;
 
 -- 课堂示例3: 创建get_week_fn()函数，使用该函数根据mysql系统时间打印星期几
 delimiter $$
-create function get_week_fn (week_no int) returns char(20)
+create function get_week_fn (p_date date) returns char(20)
 no sql
 begin
 	declare week_day char(20);
-	case week_no
+	case weekday(p_date)
 		when 0 then set week_day = 'Monday';
 		when 1 then set week_day = 'Tuesday';
 		when 2 then set week_day = 'Wednesday';
@@ -134,7 +134,10 @@ delimiter ;
 drop function get_week_fn;
 
 select weekday(now());
-select now(), get_week_fn(weekday(now())); -- weekday(日期), 0-Mon, 1-Tus....
+
+select product_id, product_name, product_date, get_week_fn(product_date) as week
+from Product
+limit 10;
 
 -- 3. 循环
 
@@ -287,15 +290,15 @@ select get_sum_fn5(100);
 -- 选用一种循环结构，编写函数get_prod_fn，实现从m到n的累乘
 -- loop
 delimiter $$
-create function get_prod_fn (m int, n int) returns int
+create function get_prod_fn1 (m int, n int) returns bigint
 no sql
 begin
-	declare accum_sum int default m;
-	declare start_num int default 0;
+	declare accum_sum bigint default 1;
+	declare num int default m;
 	add_sum : loop
-		set start_num = start_num + 1;
-    set accum_sum = start_num * accum_sum;
-    if start_num = n then
+		set accum_sum = num * accum_sum;
+        set num = num + 1;
+		if num = n + 1 then
 			leave add_sum;
 		end if;
 	end loop;
@@ -303,5 +306,78 @@ begin
 end;
 $$
 delimiter ;
+drop function get_prod_fn1;
 
-select get_prod_fn(10);
+select get_prod_fn1(10, 15);
+
+-- repeat
+delimiter $$
+create function get_prod_fn2 (m int, n int) returns bigint
+no sql
+begin
+	declare accum_sum bigint default 1;
+	declare num int default m;
+	repeat
+		set accum_sum = num * accum_sum;
+        set num = num + 1;
+	until (num = n + 1) end repeat;
+  	return accum_sum;
+end;
+$$
+delimiter ;
+select get_prod_fn2(10, 15);
+
+-- while
+delimiter $$
+create function get_prod_fn3 (m int, n int) returns bigint
+no sql
+begin
+	declare accum_sum bigint default 1;
+	declare num int default m;
+    while num <= n do
+		set accum_sum = num * accum_sum;
+        set num = num + 1;
+	end while;
+	return accum_sum;
+end;
+$$
+delimiter ;
+
+drop function get_prod_fn3;
+
+select get_prod_fn3(10, 15);
+
+
+-- 2. 选择一种循环结构，编写程序求三位水仙花数之和 [^2]。
+-- [^2]: 水仙花数: 对应三位数i，如果它的百位、十位和各位立方之和等于它本身，则这个数为水仙花数。例如153，由于1^3^+5^3^+3^3^=155，则153水仙花数。
+
+delimiter $$
+create function shuixian_fn(n int) returns int
+    no sql
+    begin
+        declare sum_num int default 0; -- 求和变量初始值为0
+        declare num int default 100;
+        declare bai int;
+        declare shi int;
+        declare ge int;
+        add_sum : loop
+            set bai = num div 100;
+            set shi = (num div 10) mod 10;
+            set ge =  num mod 10;
+            if power(bai, 3) + power(shi, 3) + power(ge, 3) = num then
+                set sum_num = sum_num + num;
+            end if;
+            set num = num + 1;
+            if num = n then
+                leave add_sum;
+            end if;
+        end loop;
+    return sum_num;
+    end;
+$$
+delimiter ;
+
+drop function shuixian_fn;
+
+select 153 div 100, (153 div 10) mod 10, 153 mod 10;
+select shuixian_fn(500);
