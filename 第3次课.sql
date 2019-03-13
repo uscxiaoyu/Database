@@ -1,8 +1,8 @@
--- 第三次课。请务必先导入上次课的purchase数据库。
+-- 第三次课。请务必先导入上次课的stu_info和purchase数据库。
 
 -- 单字段主键：
 -- 课堂示例13--将数据表grade中id字段设置为主键。
-use purchase;
+use stu_info;
 alter table grade modify id int primary key;
 desc grade;
 
@@ -39,6 +39,7 @@ desc grade;
 
 
 -- 课堂练习
+use purchase;
 alter table product MODIFY Product_ID CHAR(5) PRIMARY KEY COMMENT '商品编号';
 alter table product MODIFY Product_Name VARCHAR(100) UNIQUE COMMENT '商品名称'; -- 有重复记录
 alter table product MODIFY Product_Code VARCHAR(10) NOT NULL COMMENT '商品号';
@@ -51,6 +52,7 @@ desc product;
 
 -- 主键的自增auto_increment
 -- 课堂示例19：在数据表grade中id字段，设置为字段值自动增加。
+use stu_info;
 alter table grade modify id int auto_increment;
 desc grade;
 
