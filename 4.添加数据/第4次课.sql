@@ -62,25 +62,25 @@ INSERT INTO student (`id`,`name`) VALUES
             (11,'zhangfei');
 
 -- 课堂练习
-CREATE DATABASE purchase;
-USE purchase;
+CREATE DATABASE purchase2;
+USE purchase2;
 DROP TABLE IF EXISTS product;
 CREATE TABLE `product` (
   `Product_ID` char(10) PRIMARY KEY,
   `Product_Name` varchar(100) UNIQUE,
   `Product_Code` varchar(10) NOT NULL,
-  `Product_Place` varchar(50) DEFAULT NULL,
-  `Product_Date` date DEFAULT NULL,
+  `Product_Place` varchar(50),
+  `Product_Date` date,
   `Price` float DEFAULT 0,
-  `Unit` varchar(20) DEFAULT NULL,
-  `Detail` varchar(20) DEFAULT NULL,
+  `Unit` varchar(20),
+  `Detail` varchar(20),
   `SubSort_ID` varchar(10) NOT NULL,
   `Sort_ID` varchar(10) NOT NULL);
 
 INSERT INTO product(`product_id`, `product_name`, `product_code`, `product_place`, `product_date`, `price`, `unit`, `detail`, `subsort_id`, `sort_id`) VALUES
-  (1035, '商务型U盘128M', 1314027, '上海', '2010/9/10', 325, '片', '1片*1盒', '1314', '13'),
-  (1048, '索尼CD-RW刻录盘', 1314040, '上海', '2012/12/1', 15, '片', '1片*1盒', '1314', '13'),
-  (1058, 'LG刻录机', 1314050, '惠州', '2015/3/9', 410, '台', '1*1', '1314', '13'),
+  (1035, '商务型U盘128M', 1314027, '上海', '2010-9-10', 325, '片', '1片*1盒', '1314', '13'),
+  (1048, '索尼CD-RW刻录盘', 1314040, '上海', '2012-12-1', 15, '片', '1片*1盒', '1314', '13'),
+  (1058, 'LG刻录机', 1314050, '惠州', '2015-3-9', 410, '台', '1*1', '1314', '13'),
   (1100, '东芝2868复印机', 1101011, '日本', '2016/6/20', 17250, '台', '1*1', '1101', '11'),
   (1170, '柯达牌喷墨专用纸', '2205027', '美国', '2012/12/12', 56, '包', '100张/10包/箱', '2205', '22');
 
