@@ -269,7 +269,7 @@ pre[data-line] .line-highlight[data-end]:after {
 <li>&#x521B;&#x5EFA;stu_info</li>
 </ul>
 <pre data-role="codeBlock" data-info="sql {.line-numbers}" class="language-sql line-numbers"><span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> stu_info<span class="token punctuation">;</span>
-<span class="token keyword">USE</span> stu_grade<span class="token punctuation">;</span>
+<span class="token keyword">USE</span> stu_info<span class="token punctuation">;</span>
 
 <span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> <span class="token punctuation">`</span>student<span class="token punctuation">`</span> <span class="token punctuation">(</span><span class="token punctuation">`</span>id<span class="token punctuation">`</span> <span class="token keyword">INT</span><span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">)</span> <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span><span class="token punctuation">,</span>
                         <span class="token punctuation">`</span>name<span class="token punctuation">`</span> <span class="token keyword">VARCHAR</span><span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span> <span class="token operator">NOT</span> <span class="token boolean">NULL</span><span class="token punctuation">,</span>
@@ -576,11 +576,10 @@ pre[data-line] .line-highlight[data-end]:after {
 
 <span class="token keyword">SELECT</span> <span class="token operator">*</span> <span class="token keyword">FROM</span> student_bak2<span class="token punctuation">;</span>
 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></pre><ul>
-<li>DELETE&#x548C;TRUNCATE&#x5B8C;&#x5168;&#x5220;&#x9664;&#x8868;&#x8BB0;&#x5F55;&#x7684;&#x533A;&#x522B;&#xFF1A;
+<li><code>DELETE</code>&#x548C;<code>TRUNCATE</code>&#x5B8C;&#x5168;&#x5220;&#x9664;&#x8868;&#x8BB0;&#x5F55;&#x7684;&#x533A;&#x522B;&#xFF1A;
 <ul>
-<li>(1) &#x4F7F;&#x7528;TRUNCATE&#x8BED;&#x53E5;&#x5220;&#x9664;&#x8868;&#x4E2D;&#x7684;&#x6570;&#x636E;&#xFF0C;&#x518D;&#x5411;&#x8868;&#x4E2D;&#x6DFB;&#x52A0;&#x8BB0;&#x5F55;&#x65F6;&#xFF0C;&#x81EA;&#x52A8;&#x589E;&#x52A0;&#x5B57;&#x6BB5;&#x7684;&#x9ED8;&#x8BA4;&#x521D;&#x59CB;&#x503C;&#x91CD;&#x65B0;&#x7531;1&#x5F00;&#x59CB;&#xFF0C;<br>
-&#x4F7F;&#x7528;DELETE&#x8BED;&#x53E5;&#x5220;&#x9664;&#x8868;&#x4E2D;&#x6240;&#x6709;&#x8BB0;&#x5F55;&#xFF0C;&#x518D;&#x5411;&#x8868;&#x4E2D;&#x6DFB;&#x52A0;&#x8BB0;&#x5F55;&#x65F6;&#xFF0C;&#x81EA;&#x52A8;&#x589E;&#x52A0;&#x5B57;&#x6BB5;&#x7684;&#x503C;&#x4E3A;&#x5220;&#x9664;&#x65F6;&#x8BE5;&#x5B57;&#x6BB5;&#x7684;&#x6700;&#x5927;&#x503C;&#x52A0;1;</li>
-<li>(2) &#x4F7F;&#x7528;DELETE&#x8BED;&#x53E5;&#x65F6;&#xFF0C;&#x6BCF;&#x5220;&#x9664;&#x4E00;&#x6761;&#x8BB0;&#x5F55;&#x90FD;&#x4F1A;&#x5728;&#x65E5;&#x5FD7;&#x4E2D;&#x8BB0;&#x5F55;&#xFF0C;&#x800C;&#x4F7F;&#x7528;TRUNCATE&#x8BED;&#x53E5;&#x65F6;&#xFF0C;&#x4E0D;&#x4F1A;&#x5728;&#x65E5;&#x5FD7;&#x4E2D;&#x8BB0;&#x5F55;&#x5220;&#x9664;&#x7684;&#x5185;&#x5BB9;&#xFF0C;&#x56E0;&#x6B64;TRUNCATE&#x8BED;&#x53E5;&#x7684;&#x6267;&#x884C;&#x6548;&#x7387;&#x6BD4;DELETE&#x8BED;&#x53E5;&#x9AD8;&#x3002;</li>
+<li>(1) &#x4F7F;&#x7528;<code>TRUNCATE</code>&#x8BED;&#x53E5;&#x5220;&#x9664;&#x8868;&#x4E2D;&#x7684;&#x6570;&#x636E;&#xFF0C;&#x518D;&#x5411;&#x8868;&#x4E2D;&#x6DFB;&#x52A0;&#x8BB0;&#x5F55;&#x65F6;&#xFF0C;&#x81EA;&#x52A8;&#x589E;&#x52A0;&#x5B57;&#x6BB5;&#x7684;&#x9ED8;&#x8BA4;&#x521D;&#x59CB;&#x503C;&#x91CD;&#x65B0;&#x7531;1&#x5F00;&#x59CB;&#xFF0C; &#x4F7F;&#x7528;<code>DELETE</code>&#x8BED;&#x53E5;&#x5220;&#x9664;&#x8868;&#x4E2D;&#x6240;&#x6709;&#x8BB0;&#x5F55;&#xFF0C;&#x518D;&#x5411;&#x8868;&#x4E2D;&#x6DFB;&#x52A0;&#x8BB0;&#x5F55;&#x65F6;&#xFF0C;&#x81EA;&#x52A8;&#x589E;&#x52A0;&#x5B57;&#x6BB5;&#x7684;&#x503C;&#x4E3A;&#x5220;&#x9664;&#x65F6;&#x8BE5;&#x5B57;&#x6BB5;&#x7684;&#x6700;&#x5927;&#x503C;&#x52A0;1;</li>
+<li>(2) &#x4F7F;&#x7528;<code>DELETE</code>&#x8BED;&#x53E5;&#x65F6;&#xFF0C;&#x6BCF;&#x5220;&#x9664;&#x4E00;&#x6761;&#x8BB0;&#x5F55;&#x90FD;&#x4F1A;&#x5728;&#x65E5;&#x5FD7;&#x4E2D;&#x8BB0;&#x5F55;&#xFF0C;&#x800C;&#x4F7F;&#x7528;<code>TRUNCATE</code>&#x8BED;&#x53E5;&#x65F6;&#xFF0C;&#x4E0D;&#x4F1A;&#x5728;&#x65E5;&#x5FD7;&#x4E2D;&#x8BB0;&#x5F55;&#x5220;&#x9664;&#x7684;&#x5185;&#x5BB9;&#xFF0C;&#x56E0;&#x6B64;<code>TRUNCATE</code>&#x8BED;&#x53E5;&#x7684;&#x6267;&#x884C;&#x6548;&#x7387;&#x6BD4;<code>DELETE</code>&#x8BED;&#x53E5;&#x9AD8;&#x3002;</li>
 </ul>
 </li>
 </ul>
