@@ -105,7 +105,7 @@ SELECT SIGN(-8.2), SIGN(0), SIGN(6);
 SELECT PI(),SIN(PI()),COS(PI()),TAN(0);
 
 -- 课堂示例13：字符串函数
-SELECT LENGTH('abcdef123');
+SELECT LENGTH('abcdef123');  -- 字符串的字节数
 SELECT CONCAT('背景', '--', '音乐');
 SELECT LENGTH(TRIM(' aabdfe '));
 SELECT LENGTH(LTRIM(' aabdfe '));
@@ -175,6 +175,10 @@ SELECT product_id, product_name, product_date, IF(MONTH(product_date)<=3, '第1�
 														IF(MONTH(product_date)<=9, '第3季度', '第4季度')))
 FROM product;
 
+-- 或者
+SELECT product_id, product_name, product_date, concat('第',ceiling(Month(product_date)/3),'季度') 季度
+FROM product;
+
 -- 5. 为表和字段取别名
 /*为表起别名的语法格式: 表名 [AS] 别名; */
 -- 课堂示例18：给product表起一个别名tb_prod
@@ -209,3 +213,7 @@ FROM product;
 SELECT product_place, MONTH(product_date) AS 月份, AVG(price) 均价
 FROM product
 GROUP BY product_place, MONTH(product_date);
+
+-- 或者
+SELECT product_id, product_name, product_date, ceiling(Month(product_date)/3) 季度
+FROM product;
