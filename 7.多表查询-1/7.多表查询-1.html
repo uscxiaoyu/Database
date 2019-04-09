@@ -271,18 +271,33 @@ pre[data-line] .line-highlight[data-end]:after {
 
 <h3 class="mume-header" id="1-%E5%BB%BA%E7%AB%8B%E5%A4%96%E9%94%AE%E7%BA%A6%E6%9D%9F">1. &#x5EFA;&#x7ACB;&#x5916;&#x952E;&#x7EA6;&#x675F;</h3>
 
-<pre data-role="codeBlock" data-info="SQL" class="language-sql"><span class="token keyword">ALTER</span> <span class="token keyword">TABLE</span> &#x8868;&#x540D;
+<pre data-role="codeBlock" data-info="SQL" class="language-sql"><span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> &#x8868;&#x540D; <span class="token punctuation">(</span>
+    &#x5B57;&#x6BB5;&#x540D;<span class="token number">1</span> &#x7C7B;&#x578B;<span class="token punctuation">(</span>&#x957F;&#x5EA6;<span class="token punctuation">)</span> &#x5217;&#x7EA7;&#x5B8C;&#x6574;&#x6027;&#x7EA6;&#x675F;<span class="token punctuation">,</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+    <span class="token keyword">CONSTRAINT</span> <span class="token punctuation">[</span>&#x5916;&#x952E;&#x540D;<span class="token punctuation">]</span> <span class="token keyword">FOREIGN</span> <span class="token keyword">KEY</span> <span class="token punctuation">(</span>&#x5916;&#x952E;&#x5B57;&#x6BB5;<span class="token punctuation">)</span> <span class="token keyword">REFERENCES</span> &#x4E3B;&#x8868;<span class="token punctuation">(</span>&#x4E3B;&#x952E;&#x5B57;&#x6BB5;<span class="token punctuation">)</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">-- &#x8FFD;&#x52A0;&#x5916;&#x952E;&#x7EA6;&#x675F;</span>
+<span class="token keyword">ALTER</span> <span class="token keyword">TABLE</span> &#x8868;&#x540D;
 <span class="token keyword">ADD</span> <span class="token keyword">CONSTRAINT</span> <span class="token punctuation">[</span>&#x5916;&#x952E;&#x540D;<span class="token punctuation">]</span>
-<span class="token keyword">FOREIGN</span> <span class="token keyword">KEY</span><span class="token punctuation">(</span>&#x5916;&#x952E;&#x5B57;&#x6BB5;&#x540D;<span class="token punctuation">)</span> <span class="token keyword">REFERENCES</span> &#x5916;&#x8868;&#x8868;&#x540D;<span class="token punctuation">(</span>&#x4E3B;&#x952E;&#x5B57;&#x6BB5;&#x540D;<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">FOREIGN</span> <span class="token keyword">KEY</span> <span class="token punctuation">(</span>&#x5916;&#x952E;&#x5B57;&#x6BB5;<span class="token punctuation">)</span> <span class="token keyword">REFERENCES</span> &#x4E3B;&#x8868;<span class="token punctuation">(</span>&#x4E3B;&#x952E;&#x5B57;&#x6BB5;<span class="token punctuation">)</span><span class="token punctuation">;</span>
 </pre><blockquote>
 <p>&#x6CE8;&#x610F;: (1)&#x5EFA;&#x7ACB;&#x5916;&#x952E;&#x7684;&#x8868;&#x5FC5;&#x987B;&#x662F;<code>InnoDB</code>&#x578B;&#x7684;&#x8868;&#xFF0C;&#x4E0D;&#x80FD;&#x662F;&#x4E34;&#x65F6;&#x8868;&#x3002;&#x56E0;&#x4E3A;<code>MySQL</code>&#x4E2D;&#x53EA;&#x6709;<code>InnoDB</code>&#x578B;&#x7684;&#x8868;&#x624D;&#x652F;&#x6301;&#x5916;&#x952E;&#x3002;<br>
 (2)&#x5B9A;&#x4E49;&#x5916;&#x952E;&#x540D;&#x65F6;&#xFF0C;&#x4E0D;&#x80FD;&#x52A0;&#x5F15;&#x53F7;&#x3002;&#x5982;: <code>constraint &apos;FK_ID&apos;</code> &#x6216; <code>constraint &quot;FK_ID&quot;</code> &#x90FD;&#x662F;&#x9519;&#x8BEF;&#x7684;&#x3002;</p>
 </blockquote>
 <ul>
-<li>&#x51C6;&#x5907;&#x5DE5;&#x4F5C;: &#x521B;&#x5EFA;student&#x8868;&#xFF0C;&#x5E76;&#x6784;&#x5EFA;&#x4E0E;grade&#x8868;&#x4E4B;&#x95F4;&#x7684;&#x8054;&#x7CFB;</li>
+<li>&#x5728;&#x5B9A;&#x4E49;&#x8868;&#x65F6;&#x521B;&#x5EFA;&#x5916;&#x952E;&#x7EA6;&#x675F;: &#x521B;&#x5EFA;<code>student</code>&#x8868;&#xFF0C;&#x5E76;&#x6784;&#x5EFA;&#x4E0E;<code>grade</code>&#x8868;&#x4E4B;&#x95F4;&#x7684;&#x8054;&#x7CFB;</li>
 </ul>
-<pre data-role="codeBlock" data-info="SQL" class="language-sql"><span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> student<span class="token punctuation">(</span>
-    sid <span class="token keyword">INT</span><span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">)</span> <span class="token operator">NOT</span> <span class="token boolean">NULL</span> <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span><span class="token punctuation">,</span>
+<pre data-role="codeBlock" data-info="SQL" class="language-sql"><span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> <span class="token keyword">temp</span><span class="token punctuation">;</span>
+<span class="token keyword">USE</span> <span class="token keyword">temp</span><span class="token punctuation">;</span>
+
+<span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> grade<span class="token punctuation">(</span>
+    id <span class="token keyword">INT</span><span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">)</span> <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span><span class="token punctuation">,</span>
+    gname <span class="token keyword">VARCHAR</span><span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span> <span class="token operator">NOT</span> <span class="token boolean">NULL</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> student<span class="token punctuation">(</span>
+    sid <span class="token keyword">INT</span><span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">)</span> <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span><span class="token punctuation">,</span>
     sname <span class="token keyword">VARCHAR</span><span class="token punctuation">(</span><span class="token number">36</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
     gid <span class="token keyword">INT</span><span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">)</span> <span class="token operator">NOT</span> <span class="token boolean">NULL</span><span class="token punctuation">,</span>
     <span class="token keyword">CONSTRAINT</span> <span class="token keyword">FOREIGN</span> <span class="token keyword">KEY</span> <span class="token punctuation">(</span>gid<span class="token punctuation">)</span> <span class="token keyword">REFERENCES</span> grade<span class="token punctuation">(</span>id<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
