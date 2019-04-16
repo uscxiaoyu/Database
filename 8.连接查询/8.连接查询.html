@@ -625,7 +625,7 @@ pre[data-line] .line-highlight[data-end]:after {
 </table>
 <p>&#x5168;&#x5916;&#x8FDE;&#x63A5;</p>
 <pre data-role="codeBlock" data-info="sql" class="language-sql"><span class="token keyword">SELECT</span> <span class="token operator">*</span> <span class="token keyword">FROM</span> A <span class="token keyword">LEFT</span> <span class="token keyword">JOIN</span> B <span class="token keyword">ON</span> A<span class="token punctuation">.</span>C <span class="token operator">=</span> B<span class="token punctuation">.</span>C
-<span class="token keyword">JOIN</span>
+<span class="token keyword">UNION</span>
 <span class="token keyword">SELECT</span> <span class="token operator">*</span> <span class="token keyword">FROM</span> A <span class="token keyword">RIGHT</span> <span class="token keyword">JOIN</span> B <span class="token keyword">ON</span> A<span class="token punctuation">.</span>C <span class="token operator">=</span> B<span class="token punctuation">.</span>C<span class="token punctuation">;</span>
 </pre><table>
 <thead>
@@ -884,7 +884,7 @@ pre[data-line] .line-highlight[data-end]:after {
 <span class="token keyword">SELECT</span> sort<span class="token punctuation">.</span>Sort_ID<span class="token punctuation">,</span> sort<span class="token punctuation">.</span>Sort_name
 <span class="token keyword">FROM</span> sort <span class="token keyword">JOIN</span> subsort <span class="token keyword">ON</span> sort<span class="token punctuation">.</span>Sort_ID <span class="token operator">=</span> subsort<span class="token punctuation">.</span>Sort_ID
 <span class="token keyword">WHERE</span> subsort<span class="token punctuation">.</span>SubSort_name <span class="token operator">=</span> <span class="token string">&apos;&#x95F9;&#x949F;&apos;</span><span class="token punctuation">;</span>
-</pre><p><code>EXISTS</code>&#x64CD;&#x4F5C;&#x7B26;&#x7528;&#x4E8E;&#x5224;&#x65AD;&#x96C6;&#x5408;&#x662F;&#x5426;&#x4E3A;&#x7A7A;&#xFF0C;&#x5982;&#x679C;&#x672A;&#x7A7A;&#xFF0C;&#x5219;&#x8FD4;&#x56DE;0&#xFF1B;&#x5982;&#x679C;&#x4E0D;&#x4E3A;&#x7A7A;&#xFF0C;&#x5219;&#x8FD4;&#x56DE;1.</p>
+</pre><p><code>EXISTS</code>&#x64CD;&#x4F5C;&#x7B26;&#x7528;&#x4E8E;&#x5224;&#x65AD;&#x96C6;&#x5408;&#x662F;&#x5426;&#x4E3A;&#x7A7A;&#xFF0C;&#x5982;&#x679C;&#x4E3A;&#x7A7A;&#xFF0C;&#x5219;&#x8FD4;&#x56DE;0&#xFF1B;&#x5982;&#x679C;&#x4E0D;&#x4E3A;&#x7A7A;&#xFF0C;&#x5219;&#x8FD4;&#x56DE;1.</p>
 <h4 class="mume-header" id="%E7%A4%BA%E4%BE%8B13%E4%BD%BF%E7%94%A8exists%E5%85%B3%E9%94%AE%E5%AD%97%E5%A6%82%E6%9E%9C%E5%AD%98%E5%9C%A8%E5%AD%90%E7%B1%BB%E5%88%AB%E7%BC%96%E5%8F%B7%E4%B8%BA3101%E5%88%99%E6%9F%A5%E8%AF%A2%E7%B1%BB%E5%88%AB%E8%A1%A8%E4%B8%AD%E6%89%80%E6%9C%89%E7%9A%84%E8%AE%B0%E5%BD%95">&#x793A;&#x4F8B;13&#xFF1A;&#x4F7F;&#x7528;<code>EXISTS</code>&#x5173;&#x952E;&#x5B57;&#xFF0C;&#x5982;&#x679C;&#x5B58;&#x5728;&#x5B50;&#x7C7B;&#x522B;&#x7F16;&#x53F7;&#x4E3A;3101&#xFF0C;&#x5219;&#x67E5;&#x8BE2;&#x7C7B;&#x522B;&#x8868;&#x4E2D;&#x6240;&#x6709;&#x7684;&#x8BB0;&#x5F55;&#x3002;</h4>
 
 <pre data-role="codeBlock" data-info="sql" class="language-sql"><span class="token keyword">SELECT</span> <span class="token operator">*</span>
