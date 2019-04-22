@@ -31,7 +31,7 @@ SELECT * FROM view_product LIMIT 10;
 -- 课堂示例2：使用DESC[RIBE]查看视图view_product的结构
 DESC view_product;
 
--- 课堂示例3: 使用SHOW CREATE VIEW查看view_product的定义
+-- 课堂示例3: 使用SHOW CREATE VIEW | TABLE查看view_product的定义
 SHOW CREATE VIEW view_product;
 
 -- 1.3 指定表中的某些字段构建视图
@@ -51,6 +51,8 @@ SELECT product_place, count(product_id) FROM product GROUP BY product_place;
 desc sum_product;
 
 SELECT * FROM sum_product;
+
+SELECT product_place, `count(product_id)` FROM sum_product; -- count(product_id)需要用反引号包括起来
 
 -- 1.5 在视图中重命名表中的字段
 
@@ -91,7 +93,7 @@ FROM product GROUP BY product_place) AS a;
 -- 课堂示例8：创建视图view_sort_product，包含类别名称和对应的产品数量
 CREATE VIEW view_sort_product
 AS
-SELECT sort.sort_name, COUNT(product.product_id)
+SELECT sort.sort_name, COUNT(product.product_id) AS 产品种类
 FROM product JOIN sort ON product.sort_id = sort.sort_id
 GROUP BY sort.sort_name;
 
