@@ -91,7 +91,7 @@ FROM product GROUP BY product_place) AS a;
 
 -- 1.7 在多表上建立视图
 -- 课堂示例8：创建视图view_sort_product，包含类别名称和对应的产品数量
-CREATE VIEW view_sort_product
+CREATE OR REPLACE VIEW view_sort_product
 AS
 SELECT sort.sort_name, COUNT(product.product_id) AS 产品种类
 FROM product JOIN sort ON product.sort_id = sort.sort_id
