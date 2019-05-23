@@ -69,7 +69,7 @@ select @a;
 -- (2) 使用 select 变量值 into @变量名称;
 
 -- 课堂示例2：使用 select 变量值 into @变量名称，定义用户变量user_name，赋值为'张三'
-select '张三',19 into @user_name, @age;
+select '张三', 19 into @user_name, @age;
 select @user_name, @age;
 
 -- 2.2 使用用户会话变量保存sql查询结果
