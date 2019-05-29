@@ -28,13 +28,15 @@ language sql： 默认选项，用于说明函数体用sql编写。
 use purchase;
 -- 课堂示例1: 定义查询行号：
 /*每返回一行，行号+1*/
+drop function if exists row_no_fn;
+
 delimiter $$
 create function row_no_fn () returns int
-no sql
-begin
-	set @row_no = @row_no + 1;
-  return @row_no;
-end;
+	no sql
+	begin
+		set @row_no = @row_no + 1;
+	  return @row_no;
+	end;
 $$ -- 忘记加上去
 delimiter ;
 
@@ -42,14 +44,15 @@ set @row_no = 0;
 select row_no_fn() as '序号', product_id, product_name, Product_Place from Product limit 10;
 
 -- 课堂示例2: 定义函数get_product_number_fn, 输入类别编号，输出该类别下的产品数量
+drop function if exists get_sum_product_fn;
 delimiter $$
 create function get_sum_product_fn (p_sortid char(2)) returns int
-reads sql data
-begin
-	declare count_number int;
-  select count(*) into count_number from Product where sort_id=p_sortid;
-  return count_number;
-end;
+	reads sql data
+	begin
+		declare count_number int;
+		select count(*) into count_number from Product where sort_id=p_sortid;
+		return count_number;
+	end;
 $$
 delimiter ;
 
@@ -58,9 +61,8 @@ set @v_sortid = '11';
 select @v_sortid as 类别编号, get_sum_product_fn(@v_sortid) as 产品数量;
 
 -- 课堂练习1
--- (1) 完成课堂示例
--- (2) 定义函数get_product_number_fn, 输入产地名称，输出该产地下的产品类别数量
-drop function get_product_number_fn;
+-- 定义函数get_product_number_fn, 输入产地名称，输出该产地下的产品类别数量
+drop function if exists get_product_number_fn;
 delimiter $$
 create function get_product_number_fn (p_place varchar(255)) returns int
 	reads sql data
@@ -74,20 +76,20 @@ delimiter ;
 select get_product_number_fn('上海');
 
 -- 课堂示例3: 定义函数get_sum_sort_fn，输入产品编号，返回其产品类别下子类别的数量
+drop function if exists get_sum_sort_fn;
 delimiter $$
 create function get_sum_sort_fn (p_productid char(5)) returns char(5) -- 若在参数中定义varchar，则需提供具体的长度；return和returns类型要一致
-reads sql data  -- 函数需通过sql读取数据
-begin
-  declare v_sortid char(2); -- 函数体内变量声明(局部变量); 因为作为返回值，所以应与returns定义的类型一致
-  declare v_subsortid char(5); -- 定义变量，用于存储子类别数量
-  select sort_id into v_sortid from Product where product_id = p_productid;
-  select count(subsort_id) into v_subsortid from SubSort where sort_id = v_sortid;
-  return v_subsortid;
-end;
+	reads sql data  -- 函数需通过sql读取数据
+	begin
+	  declare v_sortid char(2); -- 函数体内变量声明(局部变量); 因为作为返回值，所以应与returns定义的类型一致
+	  declare v_subsortid char(5); -- 定义变量，用于存储子类别数量
+	  select sort_id into v_sortid from Product where product_id = p_productid;
+	  select count(subsort_id) into v_subsortid from SubSort where sort_id = v_sortid;
+	  return v_subsortid;
+	end;
 $$
 delimiter ;
 
-drop function if exists get_sum_sort_fn;
 select get_sum_sort_fn('1001') as 子类别数量;
 
 -- 课堂示例4: 查看用户定义的函数
@@ -100,17 +102,17 @@ show create function get_sum_product_fn;
 -- 课堂练习2: 定义函数get_member_num_fn，输入省份，返回该省份中的用户数量; 然后查看该函数的定义
 select * from member;
 desc member;
-drop function get_member_num_fn;
+drop function if exists get_member_num_fn;
 delimiter $$
 create function get_member_num_fn (p_province char(10)) returns int
-reads sql data
-begin
-  declare v_count int;
-  select count(*) into v_count
-  from member
-  where address regexp p_province;  -- 利用正则匹配省份
-  return v_count;
-end;
+	reads sql data
+	begin
+	  declare v_count int;
+	  select count(*) into v_count
+	  from member
+	  where address regexp p_province;  -- 利用正则匹配省份
+	  return v_count;
+	end;
 $$
 delimiter ;
 set @province = '广东';
