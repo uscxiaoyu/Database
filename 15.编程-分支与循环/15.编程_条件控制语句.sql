@@ -9,7 +9,8 @@ If 条件表达式1 then 语句块1;
 end if;
 */
 
-select product_id into @pid from product where id='10101';
+select product_id into @pid from product where product_id='1000';
+select @pid;
 
 -- 课堂示例1: 创建函数f, 输入x，如果x<0，计算y=-x;如果x>=0，计算y=x*2，返回y
 delimiter $$
@@ -27,11 +28,13 @@ end;
 $$
 delimiter ;
 
+select f(5);
 
--- 课堂示例2: 创建函数change_price_fn:,输入产品编号product_id，根据sort_id的值计算并返回返利: sort_id为11的产品返利为价格的10%， sort_id为21的产品的产品返利为价格的30%，
+-- 课堂示例2: 创建函数change_price_fn,输入产品编号product_id，根据sort_id的值计算并返回返利: sort_id为11的产品返利为价格的10%， sort_id为21的产品的产品返利为价格的30%，
 -- sort_id为31的产品返利为价格的40%, 其它返回为5%。
+drop function if exists cal_rebate_fn;
 delimiter $$
-create function cal_rebate_fn (v_p_id char(2)) returns decimal(10,2)
+create function cal_rebate_fn (v_p_id char(6)) returns decimal(10,2)
 reads sql data
 begin
 	declare v_sortid char(2);
@@ -74,8 +77,11 @@ end;
 $$
 delimiter ;
 
+select func(10);
+
 -- (2) 创建函数cal_due_fn，输入订单号，计算该订单折扣后对应的应付款p_due，价格计算方式如下：如果产品数量(quantity)小于10，则p_due = 产品单价 * 数量 * 0.95;
 -- 如果数量在10和50之间，则p_due = 产品单价 * 数量 * 0.9; 如果数量大于50，则p_due = 产品单价 * 数量 * 0.8.
+drop function if exists cal_due_fn;
 delimiter $$
 create function cal_due_fn (v_o_id char(50)) returns decimal(10, 2)
 reads sql data
@@ -83,9 +89,9 @@ begin
 	declare v_p_price decimal(10, 2) default 1.0;
 	declare v_quantity int(8) default 1;
 	declare v_due decimal(10, 2) default 0.0;
-	select `product`.price, `order`.quantity into v_p_price, v_quantity
-	from `order` join `product` on `order`.product_id = `product`.product_id
-	where `order`.order_id = v_o_id;
+	select price, quantity into v_p_price, v_quantity
+	from `orders` join `product` on `orders`.product_id = `product`.product_id
+	where order_id = v_o_id;
 	if (v_quantity < 10) then
 		set v_due = v_p_price * v_quantity * 0.95;
 	elseif (v_quantity >= 10 and v_quantity <= 50) then
@@ -99,7 +105,7 @@ $$
 delimiter ;
 
 -- 查询返回所有订单的应付款
-select order_id, cal_due_fn(order_id) from `order`;
+select order_id, cal_due_fn(order_id) from `orders`;
 
 -- 2. case 语句
 /*语法：
