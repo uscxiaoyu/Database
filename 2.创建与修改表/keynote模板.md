@@ -30,10 +30,8 @@ Multiple Presentation themes are supported, you can change it easily from the ex
 * atom  
 @import "http://i.imgur.com/lwaogVZ.png" {width: 60%}
 
-
 <!-- slide -->
 All features of **Markdown Preview Enhanced** are supported.
-
 $$
 f(x) = \int_{-\infty}^\infty
     \hat f(\xi)\,e^{2 \pi i \xi x}
@@ -43,6 +41,7 @@ $$
 <!-- slide -->
 You can set initialization config for your presentation.
 Just add front-matter to your presentation markdown file.
+
 ```yaml
 ---
 presentation:
