@@ -10,11 +10,7 @@ SELECT product_id, product_name, product_code, product_place,
 	product_date, price, unit, detail, subsort_id, sort_id
 FROM product;
 
-<<<<<<< HEAD
 -- 示例2：通过*查询product表的所有数据
-=======
--- 课堂示例2：通过*查询product表的所有数据
->>>>>>> f5d4f3d7aadfe250c7d26d6697ac47d5bd5a6aa6
 SELECT *
 FROM product;
 
@@ -22,13 +18,8 @@ FROM product;
 SELECT product_id, product_name, price
 FROM product;
 
-<<<<<<< HEAD
 -- 练习1：
 -- (1) 查询member表中的所有数据
-=======
--- 课堂练习1：
--- 查询member表中的所有数据
->>>>>>> f5d4f3d7aadfe250c7d26d6697ac47d5bd5a6aa6
 SHOW COLUMNS FROM member;
 
 SELECT user_name, user_password, true_name, sex, phone, mobile, email, address, attribute
@@ -52,20 +43,12 @@ WHERE 条件表达式;
 常见的关系运算符号：=、<>、！=、<、<=、>、>=
 */
 
-<<<<<<< HEAD
 -- 示例4：查询product表中Product_Place为“天津”的产品信息
-=======
--- 课堂示例4：查询product表中Product_Place为“天津”的产品信息
->>>>>>> f5d4f3d7aadfe250c7d26d6697ac47d5bd5a6aa6
 SELECT *
 FROM product
 WHERE product_place = '天津';
 
-<<<<<<< HEAD
 -- 示例5：使用SELECT语句查询Product_Name为“京瓷KM-4030复印机”的商品价格
-=======
--- 课堂示例5：使用SELECT语句查询Product_Name为“京瓷KM-4030复印机”的商品价格
->>>>>>> f5d4f3d7aadfe250c7d26d6697ac47d5bd5a6aa6
 SELECT price
 FROM product
 WHERE product_name = '京瓷KM-4030复印机';
@@ -106,11 +89,7 @@ WHERE product_place NOT IN ('天津', '北京', '日本');
 SELECT *|{字段名1,字段名2,……}
 FROM 表名 WHERE 字段名 [NOT] BETWEEN 值1 AND 值2; */
 
-<<<<<<< HEAD
 -- 示例8：查询prodct表中Price值在200和500之间的商品信息
-=======
--- 课堂示例8：查询prodct表中Price值在200和500之间的商品信息
->>>>>>> f5d4f3d7aadfe250c7d26d6697ac47d5bd5a6aa6
 SELECT *
 FROM product
 WHERE price BETWEEN 200 AND 500;
@@ -199,11 +178,7 @@ FROM 表名
 WHERE 条件表达式1 […… AND 条件表达式n];
 */
 
-<<<<<<< HEAD
 -- 示例16：找出商品名称含复印机且产地在天津的记录
-=======
--- 课堂示例16：找出商品名称含复印机且产地在天津的记录
->>>>>>> f5d4f3d7aadfe250c7d26d6697ac47d5bd5a6aa6
 SELECT *
 FROM product
 WHERE product_place = '天津' AND product_name LIKE '%复印机%';
