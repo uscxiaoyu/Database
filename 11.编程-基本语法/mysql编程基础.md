@@ -20,6 +20,7 @@ select 123 as number;
 
 ```sql
 select now() as now;
+select current_date() as cdate;
 ```
 
 ### 4. 布尔值
@@ -51,7 +52,7 @@ select null, null > 1;
 
 ### 1. 用户会话变量
 
-- 方法1：set
+- 方法1：`set`
 
 ```sql
 set @user_name = '张三'; -- 变量数据类型由等号右边表达式的计算结果决定
@@ -63,13 +64,13 @@ select @user_name, @age;
 set @age = @age + 1;
 ```
 
-- 方法2：select
+- 方法2：`select`
 
 有两种语法格式：
-第一种：select @user_variable1 := expression1 [, @user_variable2 := expression2, ...];
-第二种：select experession1 into @user_variable1, experession2 into @user_variable2, ...;
+第一种：`select @user_variable1 := expression1 [, @user_variable2 := expression2, ...];`
+第二种：`select experession1 into @user_variable1, experession2 into @user_variable2, ...;`
 
-- := 和 = 的区别
+- `:= `和 `=` 的区别：`:=`为赋值运算符，`:`为比较运算符
 
 ```sql
 select @a = 'a';

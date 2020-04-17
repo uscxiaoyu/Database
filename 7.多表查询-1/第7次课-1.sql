@@ -1,6 +1,6 @@
 -- 案例
-CREATE DATABASE chapter05;
-USE chapter05;
+CREATE DATABASE temp;
+USE temp;
 
 CREATE TABLE grade(
     id INT(4) NOT NULL PRIMARY KEY,
@@ -31,6 +31,8 @@ ALTER TABLE product
 ADD CONSTRAINT fk_sortid FOREIGN KEY (sort_id) REFERENCES sort(sort_id);
 -- 使用show create table 来查看表的构建语句
 SHOW CREATE TABLE product;
+
+select * from sort;
 
 /* 建立外键的完整格式
 ALTER TABLE 表名 ADD CONSTRAINT [外键名] FOREIGN KEY(外键字段名) REFERENCES 外表表名(主键字段名)
@@ -94,7 +96,32 @@ DROP FOREIGN KEY fk_subsortid;
 
 -- 2. 操作关联表
 
--- 课堂示例3：为关联表添加数据
+-- 课堂示例3：使用关联关系查询数据-查询根类别为“办公机器设备”的产品
+SELECT sort_id 
+FROM sort 
+WHERE sort_name='办公机器设备';
+
+SELECT * 
+FROM product 
+WHERE sort_id=11;
+
+-- 或者使用子查询
+SELECT * 
+FROM product 
+WHERE sort_id IN (SELECT sort_id 
+	FROM sort 
+    WHERE sort_name='办公机器设备');
+
+-- 或者使用变量保存结果
+SELECT sort_id INTO @a FROM sort WHERE sort_name='办公机器设备';
+SELECT * FROM product WHERE sort_id=@a;
+
+-- 或者使用连接查询
+SELECT p.*
+FROM product p JOIN sort s ON p.sort_id = s.sort_id
+WHERE s.sort_name = '办公机器设备';
+
+-- 课堂示例4：为关联表添加数据
 -- 在从表中插入主表中没有的值99，提示1452错误，违反外键约束
 INSERT INTO product(sort_id) VALUES(99);
 
@@ -107,16 +134,7 @@ SELECT *
 FROM product
 WHERE sort_id = '99';
 
--- 课堂示例4：使用关联关系查询数据-查询根类别为“办公机器设备”的产品
-SELECT sort_id FROM sort WHERE sort_name='办公机器设备';
-SELECT * FROM product WHERE sort_id=11;
-
--- 或者使用子查询
-SELECT * FROM product WHERE sort_id IN (SELECT sort_id FROM sort WHERE sort_name='办公机器设备');
-
--- 或者使用变量保存结果
-SELECT sort_id INTO @a FROM sort WHERE sort_name='办公机器设备';
-SELECT * FROM product WHERE sort_id=@a;
+drop table employee;
 
 -- 课堂示例5：为关联表删除数据
 -- (1) 删除从表中的sort_id为14的对应记录
