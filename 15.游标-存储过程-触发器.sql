@@ -42,6 +42,7 @@ SELECT * FROM test_table;
 
 
 -- 示例2：构建一个存储过程，实现把某个类别的产品数量写入到1个变量中
+DROP PROCEDURE IF EXISTS sort_count_proc;
 delimiter $$
 CREATE PROCEDURE sort_count_proc (IN v_sort_id VARCHAR(5), OUT v_product_count INTEGER)
 READS SQL DATA
@@ -54,12 +55,66 @@ $$
 delimiter ;
 
 SET @v_sort_id = '11';
-SET @v_product_count = 0;
+#SET @v_product_count = 0;
 CALL sort_count_proc(@v_sort_id, @v_product_count);
 SELECT @v_product_count;
 
 
--- 示例3：
+-- 示例3：查看insert_many_row和sort_count_proc的定义
+SHOW CREATE PROCEDURE insert_many_rows;
+SHOW CREATE PROCEDURE sort_count_proc;
+
+SHOW PROCEDURE STATUS LIKE 'insert%';
+SHOW PROCEDURE STATUS LIKE 'sort_count%';
+
+-- 示例4: 修改`sort_count_proc`定义
+ALTER PROCEDURE sort_count_proc
+SQL SECURITY INVOKER
+COMMENT '统计某一个类别下的产品数量';
+
+select * from sort;
+
+-- 示例5：为错误状态定义名称
+DELIMITER $$
+CREATE PROCEDURE exp_proc_1()
+BEGIN
+	DECLARE command_not_allowed CONDITION FOR SQLSTATE '42000';  -- SQLSTATE
+END
+$$
+DELIMITER ;
+
+-- 或者
+DELIMITER $$
+CREATE PROCEDURE exp_proc_2()
+BEGIN
+	DECLARE command_not_allowed CONDITION FOR 1148; -- MYSQL_ERROR_CODE
+END
+$$
+DELIMITER ;
+
+-- 示例6：定义存储程序，往`sort`表插入数据行，如果插入成功，则设置会话变量为0；如果插入重复值，则设置会话变量为1.
+ALTER TABLE sort MODIFY sort_id CHAR(2) PRIMARY KEY;
+
+DROP PROCEDURE IF EXISTS proc_demo;
+DELIMITER $$
+CREATE PROCEDURE proc_demo(IN v_sortid CHAR(2), IN v_sortname VARCHAR(20))
+BEGIN
+	DECLARE CONTINUE HANDLER FOR SQLSTATE '23000'
+		SET @is_success = 0; -- 如果遇到23000错误，则执行set @num=1，并继续之后的语句
+	SET @is_success = 1;
+	INSERT INTO sort(sort_id, sort_name) VALUES (v_sortid, v_sortname);
+END
+$$
+DELIMITER ;
+
+select * from sort;
+
+call proc_demo('99', '其它'); -- 分别执行两次，第一次成功，第二次未成功，但未报错，说明已经处理了异常。
+select @is_success;
+
+insert into sort(sort_id)
+values(99);
+
 
 -- 2. cursor
 /*
