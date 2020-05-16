@@ -181,4 +181,5 @@ SELECT * FROM tree_prereq;
 
 
 -- 思考：如何利用存储过程结合临时表、预处理语句实现对任意表的迭代查询？
-
+use purchase;
+select * from instructor;
