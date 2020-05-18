@@ -1,7 +1,7 @@
 USE purchase;
 SET SQL_SAFE_UPDATES = 0;
 
--- 1. stored procedure
+-- 一. 存储过程stored procedure
 
 /*语法格式：
 create procedure 存储过程名(参数1, 参数2, ...)
@@ -20,8 +20,12 @@ language sql
 */
 
 -- 示例1：把一定数量的数据插入到一个表中
-CREATE TABLE test_table (id INT AUTO_INCREMENT PRIMARY KEY, a VARCHAR(10), b VARCHAR(10));
+CREATE TABLE test_table (id INT AUTO_INCREMENT PRIMARY KEY, 
+	a VARCHAR(10), 
+    b VARCHAR(10));
+SELECT * FROM test_table;
 
+DROP PROCEDURE IF EXISTS insert_many_rows;
 delimiter $$
 CREATE PROCEDURE insert_many_rows (IN loops INT)
 BEGIN
@@ -36,7 +40,7 @@ $$
 delimiter ;
 DROP PROCEDURE insert_many_rows;
 
--- 插入1000行
+-- 插入100行
 CALL insert_many_rows(100);
 SELECT * FROM test_table;
 
@@ -59,6 +63,15 @@ SET @v_sort_id = '11';
 CALL sort_count_proc(@v_sort_id, @v_product_count);
 SELECT @v_product_count;
 
+-- 查看存储过程的创建语句
+SHOW CREATE PROCEDURE <proc_name>
+
+-- 根据指定的模式查看所有符合要求的存储过程
+SHOW PROCEDURE STATUS [LIKE 匹配模式];
+
+-- 直接在information_schema.routines中查询
+SELECT * 
+FROM information_schema.routines;
 
 -- 示例3：查看insert_many_row和sort_count_proc的定义
 SHOW CREATE PROCEDURE insert_many_rows;
@@ -66,6 +79,13 @@ SHOW CREATE PROCEDURE sort_count_proc;
 
 SHOW PROCEDURE STATUS LIKE 'insert%';
 SHOW PROCEDURE STATUS LIKE 'sort_count%';
+
+DESC information_schema.routines;
+
+SELECT * 
+FROM information_schema.routines 
+WHERE ROUTINE_TYPE = 'PROCEDURE' 
+AND ROUTINE_SCHEMA='purchase';
 
 -- 示例4: 修改`sort_count_proc`定义
 ALTER PROCEDURE sort_count_proc
@@ -75,6 +95,7 @@ COMMENT '统计某一个类别下的产品数量';
 select * from sort;
 
 -- 示例5：为错误状态定义名称
+DROP PROCEDURE IF EXISTS exp_proc_1
 DELIMITER $$
 CREATE PROCEDURE exp_proc_1()
 BEGIN
@@ -108,6 +129,8 @@ $$
 DELIMITER ;
 
 select * from sort;
+DELETE FROM product WHERE SORT_id = 99;
+DELETE FROM SORT WHERE SORT_ID = 99;
 
 call proc_demo('99', '其它'); -- 分别执行两次，第一次成功，第二次未成功，但未报错，说明已经处理了异常。
 select @is_success;
@@ -115,8 +138,7 @@ select @is_success;
 insert into sort(sort_id)
 values(99);
 
-
--- 2. cursor
+-- 二. 游标cursor
 /*
 a. 声明游标
 declare 游标名 cursor for select 语句
@@ -133,7 +155,7 @@ close 游标名
 */
 SELECT * FROM instructor;
 
--- 示例3：更新某一类产品的所有产品的价格：如果大于1000，则上涨5%；否则，上涨10%。
+-- 示例7：更新某一类产品的所有产品的价格：如果大于1000，则上涨5%；否则，上涨10%。
 DROP PROCEDURE IF EXISTS update_price_proc;
 delimiter $$
 CREATE PROCEDURE update_price_proc (IN v_sort_name VARCHAR(20))
@@ -171,8 +193,260 @@ FROM product natural JOIN sort
 WHERE sort_name = '办公机器设备';
 
 CALL update_price_proc('办公机器设备');
-SELECT * FROM instructor WHERE dept_name='Comp. Sci.';
+SELECT * FROM sort WHERE sort_name='办公机器设备';
 
+
+-- 示例8: 不允许`instructor`的薪水值高于150000
+DROP TABLE instructor;
+CREATE TABLE `instructor` (`id` CHAR(5) PRIMARY KEY, 
+                         `name` VARCHAR(20), 
+                         `dept_name` VARCHAR(20), 
+                         `salary` DECIMAL(8, 2));
+
+INSERT INTO instructor (id, `name`, dept_name, salary)
+VALUES ('10101', 'Srinivasan', 'Comp. Sci.', '65000.00'),
+      ('12121', 'Wu', 'Finance', '90000.00'),
+      ('15151', 'Mozart', 'Music', '40000.00'),
+      ('22222', 'Einstein', 'Physics', '95000.00'),
+      ('32343', 'EI Said', 'History', '60000.00'),
+      ('33456', 'Gold', 'Physics', '87000.00'),
+      ('45565', 'Katz', 'Comp. Sci.', '75000.00'),
+      ('58583', 'Califieri', 'History', '62000.00'),
+      ('76543', 'Singh', 'Finance', '80000.00'),
+      ('76766', 'Crick', 'Biology', '72000.00'),
+      ('83821', 'Brandt', 'Comp. Sci.', '92000.00'),
+      ('98345', 'Kim', 'Elec. Eng.', '80000.00');
+      
+-- update
+drop trigger if exists instru_update_before_trigger;
+delimiter $$
+create trigger instru_update_before_trigger before update on instructor for each row
+begin
+    if (new.salary > 150000) then -- new为更新前的行值
+        set new.salary = old.salary;  -- 如果高于150000，则重新更新为原来的值
+        insert into mytable values(0); -- 因为mytable未经定义，触发异常，更新操作失败。
+    end if;
+end;
+$$
+delimiter ;
+
+-- insert
+drop trigger if exists instru_insert_before_trigger;
+delimiter $$
+create trigger instru_insert_before_trigger before insert on instructor for each row
+begin
+    if (new.salary > 150000) then
+        insert into mytable values(0);  -- 因为mytable未经定义，触发异常，更新操作失败。
+    end if;
+end;
+$$
+delimiter ;
+
+-- 
+show triggers from purchase; -- 查看触发器
+
+SELECT * 
+FROM information_schema.triggers
+WHERE EVENT_OBJECT_TABLE = 'instructor';
+
+SELECT * 
+FROM information_schema.triggers
+WHERE EVENT_OBJECT_TABLE = 'sort'; 
+
+SELECT * 
+FROM information_schema.triggers
+WHERE EVENT_OBJECT_SCHEMA = 'purchase';  
+
+-- 插入记录
+select * from instructor;
+
+update instructor 
+set salary=185000 
+where id='10101';
+
+insert into instructor 
+values('11111', 'Steve', 'Finance', 160000);
+
+delete from instructor 
+where id='11111';
+
+-- 示例9：利用触发器实现`sort`表和`subsort`表之间的外键约束：`subsort`表的`sort_id`参照`sort`表的`sort_id`。
+
+/*
+- 分析：需要分别定义从表和主表的更新和删除行为（`before`）
+  - 主表：
+    - 删除一行时，检查从表中是否存在参照值
+    - 更新一行时，检查从表中是否存在参照行值，可进一步定义从表的参照值是否也对应更新（cascade）
+  - 从表：
+    - 新增一行时，检查主表是否存在被参照值，如果不存在，则插入失败。
+    - 更新一行时，检查主表是否存在被参照值，如果不存在，则更新失败。
+*/
+-- sort表上的更新，on update cascade
+DROP TRIGGER IF EXISTS sort_update_after_trigger;
+DELIMITER $$
+CREATE TRIGGER sort_update_after_trigger AFTER UPDATE ON sort FOR EACH ROW -- 此处应该为after，不能为before，与subsort上的定义会冲突
+BEGIN
+	UPDATE subsort
+	SET sort_id = new.sort_id
+	WHERE sort_id = old.sort_id;
+END;
+$$
+DELIMITER ;
+
+-- sort表上的删除，on delete cascade
+DROP TRIGGER IF EXISTS sort_delete_before_trigger;
+DELIMITER $$
+CREATE TRIGGER sort_delete_before_trigger BEFORE DELETE ON sort FOR EACH ROW
+BEGIN
+	DELETE FROM subsort
+	WHERE sort_id = old.sort_id;
+END;
+$$
+DELIMITER ;
+
+-- subsort表上的插入
+DROP TRIGGER IF EXISTS subsort_insert_before_trigger;
+DELIMITER $$
+CREATE TRIGGER subsort_insert_before_trigger BEFORE INSERT ON subsort FOR EACH ROW
+BEGIN
+	SELECT COUNT(*) INTO @row_count 
+	FROM sort 
+	WHERE sort_id=new.sort_id;
+	
+	IF (@row_count = 0) THEN
+		INSERT INTO mytable VALUES (0);
+	END IF;
+END;
+$$
+DELIMITER ;
+
+-- subsort表上的更新
+DROP TRIGGER IF EXISTS subsort_update_before_trigger;
+DELIMITER $$
+CREATE TRIGGER subsort_update_before_trigger BEFORE UPDATE ON subsort FOR EACH ROW
+BEGIN
+	SELECT COUNT(*) INTO @row_count 
+	FROM sort 
+	WHERE sort_id=new.sort_id;
+	
+	IF (@row_count = 0) THEN
+		INSERT INTO mytable VALUES (0);
+	END IF;
+END;
+$$
+DELIMITER ;
+
+-- 如果subsort和sort表有外键约束，先删除
+SHOW CREATE TABLE SORT;
+SHOW CREATE TABLE SUBSORT;
+
+DELETE FROM SORT WHERE SORT_ID = 93;
+SELECT * FROM SORT;
+SELECT * FROM SUBSORT WHERE SORT_ID = 93;
+
+-- 插入
+insert into subsort(subsort_id, subsort_name, sort_id)
+values (9901, 'test', 93); -- 插入失败， error code 1146
+
+insert into sort (sort_id, sort_name)
+values (93, 'test-sort'); -- 执行之后
+
+insert into subsort(subsort_id, subsort_name, sort_id)
+values (9901, 'test', 93); -- 插入成功
+
+-- 更新
+set sql_safe_updates=0;
+
+update sort
+set sort_id = 94
+where sort_name = 'test-sort';
+
+select * from sort;
+select * from subsort where subsort_name = 'test';
+
+-- 更新subsort
+update subsort
+set sort_id = 94
+where subsort_name = 'test'; -- 执行失败， error 1146
+
+-- 删除
+select * from sort where sort_name = 'test-sort';
+
+delete from sort
+where sort_name = 'test-sort';
+
+select * from sort;
+select * from subsort where subsort_name = 'test';
+
+
+-- 四、事件调度器
+
+-- 示例10：创建一个立即启动的事件。
+USE PURCHASE;
+
+CREATE TABLE demo_tb(id int primary key auto_increment,
+                    name varchar(20),
+                     insert_time timestamp default current_timestamp());
+TRUNCATE demo_tb;
+
+DROP EVENT IF EXISTS immediate_event;
+DELIMITER $$
+CREATE EVENT immediate_event ON schedule AT now()
+DO 
+BEGIN
+	insert into demo_tb(name) values('demo');
+END;
+$$
+
+delimiter ;
+
+select * from demo_tb;
+
+-- 示例11：创建一个每10秒执行的事件。
+DELIMITER $$
+CREATE EVENT interval_event ON schedule EVERY 10 SECOND
+DO 
+BEGIN
+	insert into demo_tb(name) values('demo');
+END;
+$$
+
+DELIMITER ;
+
+SELECT * FROM demo_tb;
+
+ALTER EVENT interval_event DISABLE; -- 临时关闭事件
+
+-- 示例12：创建一个2020年5月19号起每天`00:00`执行的事件。
+TRUNCATE demo_tb;
+DELIMITER $$
+CREATE EVENT repeat_event_from
+ON SCHEDULE EVERY 1 DAY STARTS timestamp('2020-05-19 00:00:00')
+ON COMPLETION PRESERVE
+ENABLE
+DO 
+BEGIN
+	insert into demo_tb(name) values('demo_INTERAL_0000');
+END;
+$$
+DELIMITER ;
+
+SELECT timestamp('2020-12-21') + INTERVAL 1 DAY;
+SELECT '2020-12-21 12:00:00' + INTERVAL 1 DAY;
+SELECT DATE_ADD('2020-12-21 00:00:01', INTERVAL 1 DAY);
+select curdate();
+SELECT DATE_ADD('2020-12-21 00:00:01', INTERVAL 30 DAY) > DATE_ADD('2020-12-21 00:00:01', INTERVAL 10 DAY);
+
+ALTER EVENT repeat_event_from DISABLE; -- 临时关闭事件
+
+SHOW EVENTS FROM purchase;  -- 查看purchase数据库中的所有事件
+
+SELECT * 
+FROM information_schema.events; -- 查看所有事件
+
+SHOW CREATE EVENT interval_event; -- 查看定义
+
+-- 五、应用
 -- 示例4： 在存储过程结合临时表实现迭代查询。
 
 CREATE TABLE prereq (course_id varchar(30) primary key, 
@@ -238,3 +512,5 @@ SELECT * FROM tree_prereq;
 -- 思考：如何利用存储过程结合临时表、预处理语句实现对任意表的迭代查询？
 use purchase;
 select * from instructor;
+
+select * from orders;
