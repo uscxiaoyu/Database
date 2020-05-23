@@ -195,6 +195,10 @@ WHERE sort_name = '办公机器设备';
 CALL update_price_proc('办公机器设备');
 SELECT * FROM sort WHERE sort_name='办公机器设备';
 
+/* 定义存储过程`update_remark_proc`，通过定义游标，逐行更新`orders`表中的价格`remark`：如果`quantity<10`，更新`remark`的值为`'小批量订单'`；
+如果`quantity`在10和50之间，更新`remark`的值为`'中批量订单'`；如果`quantity>50`，更新`remark`的值为`'大批量订单'`。*/
+
+-- 3. 触发器
 
 -- 示例8: 不允许`instructor`的薪水值高于150000
 DROP TABLE instructor;
@@ -383,34 +387,43 @@ select * from subsort where subsort_name = 'test';
 
 -- 示例10：创建一个立即启动的事件。
 USE PURCHASE;
+SHOW VARIABLES LIKE '%event_scheduler%';
 
 CREATE TABLE demo_tb(id int primary key auto_increment,
                     name varchar(20),
-                     insert_time timestamp default current_timestamp());
+					insert_time timestamp default current_timestamp());
 TRUNCATE demo_tb;
+
+SELECT * FROM demo_tb;
+SELECT NOW();
 
 DROP EVENT IF EXISTS immediate_event;
 DELIMITER $$
-CREATE EVENT immediate_event ON schedule AT now()
+CREATE EVENT immediate_event 
+ON schedule AT now()
+ON completion PRESERVE
 DO 
 BEGIN
 	insert into demo_tb(name) values('demo');
 END;
 $$
-
 delimiter ;
+
+-- 或者
+CREATE EVENT immediate_event ON schedule AT now()
+DO insert into demo_tb(name) values('demo');
 
 select * from demo_tb;
 
 -- 示例11：创建一个每10秒执行的事件。
+DROP EVENT IF EXISTS interval_event;
 DELIMITER $$
-CREATE EVENT interval_event ON schedule EVERY 10 SECOND
+CREATE EVENT interval_event ON schedule EVERY 10 SECOND STARTS now()
 DO 
 BEGIN
-	insert into demo_tb(name) values('demo');
+	insert into demo_tb(name) values('demo_10_s');
 END;
 $$
-
 DELIMITER ;
 
 SELECT * FROM demo_tb;
@@ -419,6 +432,7 @@ ALTER EVENT interval_event DISABLE; -- 临时关闭事件
 
 -- 示例12：创建一个2020年5月19号起每天`00:00`执行的事件。
 TRUNCATE demo_tb;
+DROP EVENT IF EXISTS repeat_event_from;
 DELIMITER $$
 CREATE EVENT repeat_event_from
 ON SCHEDULE EVERY 1 DAY STARTS timestamp('2020-05-19 00:00:00')
@@ -431,10 +445,10 @@ END;
 $$
 DELIMITER ;
 
-SELECT timestamp('2020-12-21') + INTERVAL 1 DAY;
+SELECT timestamp('2020-12-21 00:00:00') + INTERVAL 1 DAY;
 SELECT '2020-12-21 12:00:00' + INTERVAL 1 DAY;
 SELECT DATE_ADD('2020-12-21 00:00:01', INTERVAL 1 DAY);
-select curdate();
+select curdate(), NOW();
 SELECT DATE_ADD('2020-12-21 00:00:01', INTERVAL 30 DAY) > DATE_ADD('2020-12-21 00:00:01', INTERVAL 10 DAY);
 
 ALTER EVENT repeat_event_from DISABLE; -- 临时关闭事件
@@ -463,8 +477,17 @@ VALUES ('BIO-301', 'BIO-101'),
 	('CS-101', 'CS-10'),
 	('CS-10', 'CS-1');
 
+SELECT a.*, b.*
+FROM prereq a JOIN prereq b ON a.course_id = b.prereq_id
+WHERE a.course_id = 'CS-101';
+
+select course_id, prereq_id, 0 as lev, course_id as tree_path 
+	from prereq 
+	where course_id = 'CS-10';
+
+-- MYSQL8以上版本支持以下语法
 with recursive tree_course(course_id, prereq_id, lev) as (
-	select course_id, prereq_id, 0 as lev 
+	select course_id, prereq_id, 0 as lev
 	from prereq 
 	where course_id = 'CS-10'
 	union all
@@ -475,7 +498,7 @@ select * from tree_course;
 select * from prereq;
 
 USE PURCHASE;
--- MYSQL5.7以下版本
+-- MYSQL8及以下版本支持
 DROP PROCEDURE IF EXISTS purchase.tree_prereq_proc;
 
 DELIMITER $$
@@ -509,8 +532,101 @@ CALL tree_prereq_proc('CS-10');
 SELECT * FROM tree_prereq;
 
 
--- 思考：如何利用存储过程结合临时表、预处理语句实现对任意表的迭代查询？
-use purchase;
-select * from instructor;
+-- 示例14：`his_log`表中的行数不大于10000
+CREATE TABLE his_log(id int primary key auto_increment,
+                    userid char(50) not null,
+                    operate_time timestamp default current_timestamp());
+            
+            
+DELIMITER $$
+CREATE TRIGGER his_log_constant_rows_trigger BEFORE INSERT ON his_log FOR EACH ROW
+BEGIN
+	SELECT COUNT(*) INTO @num_rows
+	FROM his_log;
+	IF (@num_rows >= 10000) THEN
+		DELETE FROM his_log
+		ORDER BY operate_time LIMIT 1;
+	END IF;
+END;
+$$
+DELIMITER ;
 
-select * from orders;
+-- 示例15：每天凌晨定期清理30天前的`his_log`中的记录。
+DELIMITER $$
+CREATE EVENT delete_log_event
+ON SCHEDULE EVERY 1 DAY STARTS CURDATE() + INTERVAL 1 DAY
+ON COMPLETION PRESERVE
+ENABLE
+DO 
+BEGIN
+	DELETE FROM his_log
+	WHERE DATE_ADD(operate_time, INTERVAL 30 DAY) < CURRENT_TIMESTAMP();
+END;
+$$
+DELIMITER ;
+
+-- 示例16：首先，定义存储过程，检查`orders`表的`product_id`都在`product`表中，如果不在，则将对应的行移动到`orders_suspend`表中（`orders_suspend`有`orders`所有字段，且有`insert_time`字段记录移动时间）。
+-- 然后，定义事件，在每天`00:00:00`执行该检查。
+USE purchase;
+-- 定义表orders_suspend
+CREATE TABLE orders_suspend SELECT * FROM orders WHERE 1 = 0;
+ALTER TABLE orders_suspend ADD insert_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP();
+
+SELECT * FROM orders_suspend;
+
+-- 定义存储过程check_orders_ref_proc: 方法1
+DELIMITER $$
+CREATE PROCEDURE check_orders_ref1_proc()
+MODIFIES SQL DATA
+BEGIN
+	DECLARE v_diff INT DEFAULT 0;
+	-- 检查是否有不符合外键约束的记录
+	SELECT COUNT(*) INTO v_diff
+	FROM orders a LEFT JOIN product b ON a.product_id = b.product_id
+	WHERE b.product_id IS NULL LIMIT 1;
+	-- 如果有，则转移问题记录
+	IF (v_diff > 0) THEN
+		-- 将不符合外键约束的行移至orders_suspend
+		INSERT INTO orders_suspend (order_id, product_id, quantity, user_name, order_date, consignee, delivery_address, phone, email, remark, insert_time)
+		SELECT a.order_id, a.product_id, a.quantity, a.user_name, a.order_date, a.consignee, a.delivery_address, a.phone, a.email, a.remark, current_timestamp()
+		FROM orders a LEFT JOIN product b ON a.product_id = b.product_id
+		WHERE b.product_id IS NULL;
+		-- 删除orders表中不符合外键约束的行
+		DELETE FROM orders
+		WHERE product_id NOT IN (SELECT product_id FROM product);
+	END IF;
+END;
+$$
+DELIMITER ;
+
+-- 定义存储过程check_orders_ref_proc: 方法2，保存中间结果，更加高效
+DELIMITER $$
+CREATE PROCEDURE check_orders_ref2_proc()
+MODIFIES SQL DATA
+BEGIN
+	-- 创建临时表orders_temp，保存不符合外键约束的中间结果
+	DROP TEMPORARY TABLE IF EXISTS orders_temp;
+	CREATE TEMPORARY TABLE orders_temp
+	SELECT b.product_id
+	FROM orders a LEFT JOIN product b ON a.product_id = b.product_id
+	WHERE b.product_id IS NULL LIMIT 1;
+	-- row_count()返回上一次数据操纵语句的影响行数, found_rows()返回上一次查询的返回行数
+	IF (row_count() > 0) THEN
+	-- 将不符合外键约束的行移至orders_suspend
+		INSERT INTO orders_suspend (order_id, product_id, quantity, user_name, order_date, consignee, delivery_address, phone, email, remark, insert_time)
+		SELECT order_id, product_id, quantity, user_name, order_date, consignee, delivery_address, phone, email, remark, current_timestamp()
+		FROM orders_temp;		
+		-- 删除orders表中不符合外键约束的行
+		DELETE FROM orders
+		WHERE product_id IN (SELECT product_id FROM orders_temp);
+	END IF;
+END;
+$$
+DELIMITER ;
+
+-- 定义事件repeate_move_orders_event
+CREATE EVENT repeate_move_orders_event
+ON SCHEDULE EVERY 1 DAY STARTS DATE_ADD(curdate(), INTERVAL 1 DAY)
+ON COMPLETION PRESERVE
+ENABLE
+DO CALL check_orders_ref_proc2();
