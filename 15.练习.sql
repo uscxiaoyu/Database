@@ -121,6 +121,49 @@ $$
 DELIMITER ;
 
 -- 练习4
+
+-- 1. 迭代查询父节点
+with recursive tree_course(course_id, prereq_id, lev) as (
+	select course_id, prereq_id, 0 as lev
+	from prereq 
+	where course_id = 'CS-190'
+	union all
+	select p.course_id, p.prereq_id, s.lev - 1 as lev
+	from tree_course s join prereq p on p.course_id = s.prereq_id)
+select * from tree_course;
+
+-- 存储过程实现
+DROP PROCEDURE IF EXISTS path_prereq_proc;
+DELIMITER $$
+CREATE PROCEDURE path_prereq_proc(v_course_id varchar(30))
+MODIFIES SQL DATA
+BEGIN
+	DECLARE v_lev INT DEFAULT 0;
+	DROP TEMPORARY TABLE IF EXISTS path_prereq;
+	CREATE TEMPORARY TABLE path_prereq(course_id varchar(30), 
+									 prereq_id varchar(30),
+									 lev int); -- 用于存储结果
+	INSERT INTO path_prereq(course_id, prereq_id, lev)
+	SELECT course_id, prereq_id, v_lev as lev
+	FROM prereq
+	WHERE course_id = v_course_id; -- 首轮节点对应的子节点
+	WHILE row_count() > 0 DO
+		DROP TEMPORARY TABLE if exists temp;
+		CREATE TEMPORARY TABLE temp -- 保存下一次迭代查询的父节点
+			SELECT * FROM path_prereq WHERE lev = v_lev;
+		SET v_lev = v_lev - 1; -- 更新层级
+		INSERT INTO path_prereq(course_id, prereq_id, lev)
+			SELECT distinct p.course_id, p.prereq_id, v_lev as lev
+			FROM temp s JOIN prereq p ON p.course_id = s.prereq_id;
+	END WHILE;
+END;
+$$
+DELIMITER ;
+
+CALL path_prereq_proc('CS-190');
+SELECT * FROM path_prereq;
+
+-- 2. 通用查询后代节点
 DROP PROCEDURE IF EXISTS get_decendent_ids;
 DELIMITER $$
 CREATE PROCEDURE get_decendent_ids(IN tb VARCHAR(100), IN id_col VARCHAR(100), IN pid_col VARCHAR(100), IN id_value VARCHAR(100))
