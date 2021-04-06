@@ -108,6 +108,7 @@ WHERE id < 4;
 SELECT * FROM student WHERE `id` < 4;
 
 -- MySQL默认模式是安全更新模式，在该模式下，会导致非主键条件下无法执行更新。要把MySQL数据库设置为非安全更新模式 
+SHOW VARIABLES LIKE "%sql_safe%";
 SET SQL_SAFE_UPDATES=0;  -- 重置SQL模式
 UPDATE student
 SET `grade`=90

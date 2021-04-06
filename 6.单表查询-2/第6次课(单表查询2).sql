@@ -27,6 +27,11 @@ FROM product
 WHERE product_name LIKE '%理光%墨粉%' OR product_name LIKE '%墨粉%理光'
 ORDER BY price DESC;
 
+SELECT *
+FROM product
+WHERE product_name REGEXP '(理光.*墨粉)|(墨粉.*理光)'
+ORDER BY price DESC;
+
 -- 示例5： 查找product表中的product_id, product_name, product_place, price，返回结果先按product_place降序排列，然后按price升序排序
 SELECT product_id, product_name, product_place, price
 FROM product
@@ -44,7 +49,16 @@ FROM product
 ORDER BY CAST(product_id AS UNSIGNED) DESC;  -- 将字符串转换为数值
 
 /*
-
+CAST(字段名 AS 转换类型)函数可以将一个字段进行类型准换。
+转换类型可以是
+CHAR[(N)] 字符型 
+DATE  日期型
+DATETIME  日期和时间型
+TIME  时间型
+DECIMAL  float型
+FLOAT float型
+SIGNED  有符号int
+UNSIGNED 无符号int
 */
 
 SELECT convert('1', signed);
@@ -99,9 +113,11 @@ limit 10;
 
 -- group_concat()函数：将某一分组中的某一字段对应的所有字符串连接起来，即返回分组中对应字段的所有值
 -- 示例11：查询各子类对应的product_name，用逗号连接起来
-SELECT subsort_id, group_concat(product_name ORDER BY length(product_name) ASC separator ",")
+SELECT subsort_id, group_concat(product_name ORDER BY length(product_name) ASC separator "--")
 FROM product 
 GROUP BY subsort_id;
+
+show variables like '%sql_mode%';
 
 -- 4. 其它函数
 -- 示例12: 数学函数
