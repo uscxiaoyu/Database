@@ -30,3 +30,43 @@ add constraint fk_subsortid foreign key (subsort_id) references subsort(subsort_
 -- subsort表的sort_id参照sort表的subsort_id
 alter table subsort 
 add constraint fk_sortid_sort foreign key (sort_id) references sort(sort_id);
+
+-- on update cascade
+insert into sort(sort_id, sort_name) values (93, '其它');
+
+update sort set sort_id = 93 where sort_id = 33;
+
+alter table product
+drop foreign key fk_sortid;
+
+alter table product 
+add constraint fk_sortid foreign key (sort_id) references sort(sort_id) on update cascade;
+
+alter table subsort 
+drop foreign key fk_sortid_sort;
+
+alter table subsort 
+add constraint fk_sortid_sort foreign key (sort_id) references sort(sort_id) on update cascade;
+
+show create table product;
+
+select * from product where sort_id=93 limit 10;
+select * from sort where sort_id=93;
+
+select * from sort;
+
+-- on update set null
+alter table product
+drop foreign key fk_sortid;
+
+alter table product 
+add constraint fk_sortid foreign key (sort_id) references sort(sort_id) on update set null;
+
+alter table subsort 
+drop foreign key fk_sortid_sort;
+
+alter table subsort 
+add constraint fk_sortid_sort foreign key (sort_id) references sort(sort_id) on update set null;
+
+update sort set sort_id = 93 where sort_id = 33;
+
