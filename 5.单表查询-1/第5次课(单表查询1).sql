@@ -10,7 +10,7 @@ SELECT product_id, product_name, product_code, product_place,
 	product_date, price, unit, detail, subsort_id, sort_id
 FROM product;
 
-SELECT C*)
+SELECT COUNT(*)
 FROM PRODUCT;
 
 -- 示例2：查询指定字段对应的数据
@@ -182,6 +182,8 @@ INSERT INTO product(product_id, product_name)
 VALUES ('33', '理光_复印机'),
 ('44', '理光%复印机');
 
+SELECT * FROM PRODUCT WHERE PRODUCT_ID IN ('33', '44');
+
 SET sql_safe_updates = 0;
 
 SELECT *
@@ -323,7 +325,7 @@ SHOW CREATE TABLE p1;
 
 LOAD DATA INFILE "E:\1.CSV"
 INTO TABLE p1 CHARACTER SET gbk
-FILEDS TERMINATED BY ','
+FIELDS TERMINATED BY ','
 OPTIONALLY ENCLOSED BY '"'
 LINES TERMINATED BY '\n';
 

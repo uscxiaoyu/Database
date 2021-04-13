@@ -5,15 +5,18 @@ use purchase;
 SELECT AVG(price), MAX(price), MIN(price) 
 FROM product;
 
+select * from product;
+
 -- 示例2：使用count()统计product表中的记录个数
 SELECT COUNT(*) FROM product;
 SELECT COUNT(product_name) FROM product;
+SELECT product_name FROM product where product_name is not null;
 SELECT COUNT(*) FROM product WHERE product_name IS NOT NULL; 
 SELECT COUNT(*) FROM product WHERE product_name IS NULL; 
 
 -- 示例3: 使用count(distinct())统计product不重复值的个数
-SELECT DISTINCT(sort_id) FROM product;
-SELECT COUNT(DISTINCT(sort_id)) FROM product;
+SELECT DISTINCT sort_id FROM product;
+SELECT COUNT(DISTINCT sort_id) FROM product;
 
 -- 2. 排序ORDER BY
 /*
@@ -39,6 +42,9 @@ ORDER BY product_place DESC, price ASC;
 
 -- 字符串排序
 DESC product;
+alter table product modify product_id varchar(25);
+
+select product_id from product limit 10;
 
 SELECT product_id, product_name, product_place, price
 FROM product
@@ -87,8 +93,9 @@ GROUP BY product_place;
 -- 示例7：按Product_Place分组，显示各产地对应的产品记录个数
 SELECT product_place, COUNT(*)
 FROM product
+where product_place is not null
 GROUP BY product_place
-HAVING product_place is not null;
+having avg(price) > 100;
 
 -- 示例8：根据product表计算不同产地的商品单价最大值，按Product_place降序排列
 SELECT product_place, MAX(price)
@@ -99,7 +106,8 @@ ORDER BY product_place DESC;
 -- 示例9：根据product表计算不同产地的商品单价最大值，将单价最大值大于100元的产品的产地及单价最大值按Product_ID降序排列
 SELECT product_place, MAX(price)
 FROM product
-GROUP BY product_place HAVING MAX(price) > 100;
+GROUP BY product_place 
+HAVING MAX(price) > 100;
 
 -- 示例10：查询product表中（类别，子类别）对应的最大商品价格，返回sort_id, subsort_id和对应的最大价格
 SELECT sort_id, subsort_id, MAX(price)
@@ -113,7 +121,7 @@ limit 10;
 
 -- group_concat()函数：将某一分组中的某一字段对应的所有字符串连接起来，即返回分组中对应字段的所有值
 -- 示例11：查询各子类对应的product_name，用逗号连接起来
-SELECT subsort_id, group_concat(product_name ORDER BY length(product_name) ASC separator "--")
+SELECT subsort_id, group_concat(product_name ORDER BY length(product_name) ASC separator "===")
 FROM product 
 GROUP BY subsort_id;
 
@@ -137,7 +145,7 @@ SELECT CONCAT('背景', '--', '音乐');
 SELECT LENGTH(TRIM(' aabdfe '));
 SELECT LENGTH(LTRIM(' aabdfe '));
 SELECT LENGTH(RTRIM(' aabdfe '));
-SELECT REPLACE('背景音乐', '背景', '北京');
+SELECT REPLACE('背景背景音乐', '背景', '北京');
 SELECT SUBSTRING('abcdef123', 1, 3);
 SELECT REVERSE('abcdef123');
 SELECT LOCATE('c','abcdef123');
