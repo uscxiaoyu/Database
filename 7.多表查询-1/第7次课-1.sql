@@ -20,19 +20,20 @@ CREATE TABLE student(
     gid INT(4) NOT NULL,
     CONSTRAINT FOREIGN KEY (gid) REFERENCES grade(id));
 
--- 示例1: 为product表的sort_id添加外键约束
-USE purchase;
+-- 示例1: 创建`student`表，并构建与`grade`表之间的联系
+CREATE DATABASE temp;
+USE temp;
 
--- 首先，被引用的主表字段应为主键，因此需为sort表的Sort_ID字段添加主键约束，否则建立外键时会提示1215错误
-ALTER TABLE sort
-MODIFY sort_id CHAR(2) PRIMARY KEY;
--- 然后，为表product的Sort_ID字段添加外键约束
-ALTER TABLE product
-ADD CONSTRAINT fk_sortid FOREIGN KEY (sort_id) REFERENCES sort(sort_id);
--- 使用show create table 来查看表的构建语句
-SHOW CREATE TABLE product;
+CREATE TABLE grade(
+    id INT PRIMARY KEY,
+    gname VARCHAR(20) NOT NULL
+);
 
-select * from sort;
+CREATE TABLE student(
+    sid INT PRIMARY KEY,
+    sname VARCHAR(36),
+    gid INT NOT NULL,
+    CONSTRAINT fk_gid FOREIGN KEY (gid) REFERENCES grade(id));
 
 /* 建立外键的完整格式
 ALTER TABLE 表名 ADD CONSTRAINT [外键名] FOREIGN KEY(外键字段名) REFERENCES 外表表名(主键字段名)
@@ -45,54 +46,52 @@ ALTER TABLE 表名 ADD CONSTRAINT [外键名] FOREIGN KEY(外键字段名) REFER
 (4) RESTRICT: 拒绝删除或者更新主表被参照列记录。
 */
 
--- 示例2：删除product表的sort_id上的外键约束
+-- 示例2：删除`student`表的`gid`上的外键约束
 /* 基本语法：
 ALTER TABLE 表名
 DROP FOREIGN KEY 约束名称;
 */
 
-ALTER TABLE product
-DROP FOREIGN KEY fk_sortid;
+ALTER TABLE student
+DROP FOREIGN KEY fk_gid;
 
-SHOW CREATE TABLE product;
+SHOW CREATE TABLE student;
 
 -- 练习1
--- (2) 再为product表添加Sort_ID的外键约束FK_sortid1
-ALTER TABLE product
-ADD CONSTRAINT fk_sortid1 Foreign key (sort_id) references sort(sort_id)
-ON UPDATE RESTRICT ON DELETE RESTRICT;
+-- (1) 构建`product`表的主键为`product_id`, `sort`表的主键为`sort_id`, `subsort`表的主键为`subsort_id`
+select * from product 
+where product_id is null;
+delete from product 
+where product_id is null;
 
--- (3) 使用语句为subsort表的Sort_ID添加引用自sort表外键名为FK_sortid2的外键约束，并设置为on delete cascade参数。
-ALTER TABLE subsort
-ADD CONSTRAINT fk_sortid2 FOREIGN KEY (sort_id) REFERENCES sort(sort_id)
-ON DELETE CASCADE;
+alter table product add primary key (product_id); 
+alter table sort add primary key (sort_id);
+alter table subsort add primary key (subsort_id);
+-- (2) 构建`product`表与`sort`表之间的外键约束`fk_sortid`，外键为`sort_id`
+select product_id, sort_id from product 
+where sort_id not in (select sort_id from sort);
+alter table product 
+add constraint fk_sortid foreign key (sort_id) references sort(sort_id);
 
--- (4) 为product表添加Subsot_id的引用自subsort表的外键约束FK_subsortid。（注意：主表被引用的列应具有主键约束或唯一性约束。）
-ALTER TABLE subsort
-MODIFY subsort_id CHAR(5) PRIMARY KEY;
+-- (3) 构建`subsort`表与`sort`表之间的外键约束`fk_sortid2`，外键为`subsort_id`，并设置为`on delete cascade`。
+alter table subsort 
+add constraint fk_sortid2 foreign key (sort_id) references sort(sort_id);
 
--- 查看product表中subsort_id列是否有subsort表中subsort_id列未包含的值
-SELECT DISTINCT subsort_id
-FROM product
-WHERE subsort_id NOT IN (SELECT DISTINCT subsort_id FROM subsort);
+-- (4) 构建`product`表与`subsort`表之间的外键约束`fk_subsortid`，外键为`subsort_id` 
+select distinct subsort_id 
+from product 
+where subsort_id not in (select distinct subsort_id from subsort);
 
--- 若product表中subsort_id列有subsort表中subsort_id列未包含的值，则进行以下操作:
-SET SQL_SAFE_UPDATES=0;
+-- 方法1：在出表中插入记录
+insert into subsort(subsort_id, subsort_name, sort_id)
+values (3317, 'a', 33), (6412, 'b', 64);
 
+-- 方法2：删除从表中的记录
 DELETE FROM product
 WHERE subsort_id = 3317 OR subsort_id = 6412;  -- 删除对应记录
 
-DELETE FROM product
-WHERE subsort_id IS NULL;
-
--- 最后，才能建立外键联系
-ALTER TABLE product
-ADD CONSTRAINT fk_subsortid FOREIGN KEY (subsort_id) REFERENCES subsort(subsort_id)
-ON DELETE CASCADE ON UPDATE CASCADE;
-
--- (5) 删除product表中的Subsort_ID的外键约束。
-ALTER TABLE product
-DROP FOREIGN KEY fk_subsortid;
+alter table product 
+add constraint fk_subsortid foreign key (subsort_id) references subsort(subsort_id);
 
 -- 2. 操作关联表
 
@@ -182,21 +181,7 @@ WHERE sort_id = 64;
 SELECT * FROM product WHERE sort_id = 64;
 
 -- 课堂练习2
--- （2）课堂练习1中已为subsort表与sort表添加关联关系（建立外键），修改该外键的参数说明均为RESTRICT。
--- 查看sort表中sort_id是否为主键
-SHOW CREATE TABLE sort;
--- 如果不为主键，则修改表结构，设置为主键
-ALTER TABLE sort
-MODIFY sort_id CHAR(2) PRIMARY KEY;
-
-ALTER TABLE subsort
-DROP FOREIGN KEY fk_sortid2;
-
-ALTER TABLE subsort
-ADD CONSTRAINT fk_sortid2 FOREIGN KEY (sort_id) REFERENCES sort (sort_id)
-ON UPDATE RESTRICT
-ON DELETE RESTRICT;
--- （3）向subsort表添加如下表的记录。
+-- （5）向subsort表添加如下表的记录。
 SELECT *
 FROM sort ORDER BY sort_id DESC;
 
@@ -206,7 +191,7 @@ VALUES (97), (98), (99); -- 先在主表中添加对应的sort_id值
 INSERT INTO subsort(subsort_id, sort_id)
 VALUES (9701, 97), (9702, 97), (9801, 98), (9802, 98), (9901, 99), (9902, 99);
 
--- （4）按照课堂示例5的三种方式逐次删除在sort表中的sort_id为97、98、99的记录。
+-- （6）按照课堂示例5的三种方式逐次删除在sort表中的sort_id为97、98、99的记录。
 -- 1) 97  删除从表中的对应记录
 DELETE FROM subsort
 WHERE sort_id = 97;
