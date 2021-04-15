@@ -2,23 +2,12 @@
 CREATE DATABASE temp;
 USE temp;
 
-CREATE TABLE grade(
-    id INT(4) NOT NULL PRIMARY KEY,
-    name VARCHAR(36)
-);
-
 -- 1. 建立外键联系
 /* 建立外键约束语法
 ALTER TABLE 表名 ADD CONSTRAINT [外键名] FOREIGN KEY(外键字段名) REFERENCES 外表表名(主键字段名);
 注意：(1)建立外键的表必须是InnoDB型的表，不能是临时表。因为MySQL中只有InnoDB型的表才支持外键。
 (2)定义外键名时，不能加引号。如：constraint 'FK_ID' 或 constraint " FK_ID "都是错误的。
 */
-
-CREATE TABLE student(
-    sid INT(4) NOT NULL PRIMARY KEY,
-    sname VARCHAR(36),
-    gid INT(4) NOT NULL,
-    CONSTRAINT FOREIGN KEY (gid) REFERENCES grade(id));
 
 -- 示例1: 创建`student`表，并构建与`grade`表之间的联系
 CREATE DATABASE temp;
@@ -58,26 +47,32 @@ DROP FOREIGN KEY fk_gid;
 SHOW CREATE TABLE student;
 
 -- 练习1
+set sql_safe_updates=0;
+use purchase;
 -- (1) 构建`product`表的主键为`product_id`, `sort`表的主键为`sort_id`, `subsort`表的主键为`subsort_id`
-select * from product 
-where product_id is null;
-delete from product 
-where product_id is null;
-
 alter table product add primary key (product_id); 
 alter table sort add primary key (sort_id);
 alter table subsort add primary key (subsort_id);
--- (2) 构建`product`表与`sort`表之间的外键约束`fk_sortid`，外键为`sort_id`
+
+select * from product 
+where product_id is null;
+
+delete from product 
+where product_id is null;
+
+-- (2) 构建`product`表与`sort`表之间的外键约束`fk_sortid1`，外键为`sort_id`
 select product_id, sort_id from product 
 where sort_id not in (select sort_id from sort);
 alter table product 
-add constraint fk_sortid foreign key (sort_id) references sort(sort_id);
+add constraint fk_sortid1 foreign key (sort_id) references sort(sort_id);
 
 -- (3) 构建`subsort`表与`sort`表之间的外键约束`fk_sortid2`，外键为`subsort_id`，并设置为`on delete cascade`。
 alter table subsort 
 add constraint fk_sortid2 foreign key (sort_id) references sort(sort_id);
 
 -- (4) 构建`product`表与`subsort`表之间的外键约束`fk_subsortid`，外键为`subsort_id` 
+show variables like "%foreign%"; -- 如果值为ON，则开启外键约束检查
+
 select distinct subsort_id 
 from product 
 where subsort_id not in (select distinct subsort_id from subsort);
@@ -96,6 +91,7 @@ add constraint fk_subsortid foreign key (subsort_id) references subsort(subsort_
 -- 2. 操作关联表
 
 -- 课堂示例3：使用关联关系查询数据-查询根类别为“办公机器设备”的产品
+-- 方法1
 SELECT sort_id 
 FROM sort 
 WHERE sort_name='办公机器设备';
@@ -104,18 +100,18 @@ SELECT *
 FROM product 
 WHERE sort_id=11;
 
--- 或者使用子查询
+-- 方法2: 使用变量保存结果
+SELECT sort_id INTO @a FROM sort WHERE sort_name='办公机器设备';
+SELECT * FROM product WHERE sort_id=@a;
+
+-- 方法3：使用子查询
 SELECT * 
 FROM product 
 WHERE sort_id IN (SELECT sort_id 
 	FROM sort 
     WHERE sort_name='办公机器设备');
 
--- 或者使用变量保存结果
-SELECT sort_id INTO @a FROM sort WHERE sort_name='办公机器设备';
-SELECT * FROM product WHERE sort_id=@a;
-
--- 或者使用连接查询
+-- 方法4：使用连接查询
 SELECT p.*
 FROM product p JOIN sort s ON p.sort_id = s.sort_id
 WHERE s.sort_name = '办公机器设备';
@@ -133,11 +129,9 @@ SELECT *
 FROM product
 WHERE sort_id = '99';
 
-drop table employee;
-
 -- 课堂示例5：为关联表删除数据
 -- (1) 删除从表中的sort_id为14的对应记录
--- 直接删除，提示1451错误, 因为product表中有sort_id参照sort中的sort_id
+-- 直接删除，提示1451错误, 因为product表中有sort_id参照sort中的sort_id，且subsort表也参照了sort表
 DELETE FROM sort
 WHERE sort_id = 14;
 
@@ -145,9 +139,13 @@ SELECT *
 FROM product
 WHERE sort_id = 14;
 
--- 首先删除product表中有sort_id为14的记录
+-- 首先删除product表和subsort表中有sort_id为14的记录
 DELETE FROM product
 WHERE sort_id = 14;
+
+DELETE FROM subsort
+WHERE sort_id = 14;
+
 -- 然后，删除主表中的sort_id为14的记录
 DELETE FROM sort
 WHERE sort_id = 14;
@@ -161,6 +159,10 @@ UPDATE product
 SET sort_id = NULL
 WHERE sort_id = 99;
 
+UPDATE subsort
+SET sort_id = NULL
+WHERE sort_id = 99;
+
 DELETE FROM sort
 WHERE sort_id = 99;
 
@@ -171,6 +173,11 @@ DROP FOREIGN KEY fk_sortid1;
 ALTER TABLE product
 ADD CONSTRAINT fk_sortid1 FOREIGN KEY (sort_id) REFERENCES sort (sort_id) ON DELETE CASCADE;
 
+ALTER TABLE subsort
+DROP FOREIGN KEY fk_sortid2;
+
+ALTER TABLE subsort
+ADD CONSTRAINT fk_sortid2 FOREIGN KEY (sort_id) REFERENCES sort (sort_id) ON DELETE CASCADE;
 select *
 from product
 where sort_id = 64;
