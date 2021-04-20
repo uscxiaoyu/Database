@@ -206,6 +206,8 @@ WHERE price > 1000;
 
 -- 补充2
 -- with check option v.s. without check option
+show variables like "%auto%";
+set autocommit=0;
 delete from product where product_id > 6000;
 
 create or replace view view_product
@@ -218,7 +220,7 @@ values (9999, 12); -- 执行成功，即使sort_id为12
 
 select * from product where product_id = 9999; -- 可以查看到相关记录
 select * from view_product where product_id = 9999; -- 不能查看，因为sort_id不为11
-rollback;
+rollback; -- 回滚到事务开始前的数据库状态，即未插入(9999, 12)前
 
 create or replace view view_product
 as
@@ -242,10 +244,10 @@ with local check option;
 
 start transaction;
 insert into view_view_product(product_id, price, sort_id)
-values (9999, 2000, 12); -- 执行成功, 虽然违背view_product的where条件
+values (9999, 2000, 12); -- 执行成功：虽然违背view_product的where条件sort_id = 11
 
 insert into view_view_product(product_id, price, sort_id)
-values (9999, 200, 11);
+values (9999, 200, 11); -- 插入失败：price < 1000，不满足view_view_product的lock check
 
 select * from product where product_id = 9999; -- 有结果
 select * from view_product where product_id = 9999; -- 无结果
