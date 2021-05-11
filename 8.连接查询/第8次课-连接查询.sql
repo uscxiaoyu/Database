@@ -28,8 +28,9 @@ SELECT * FROM 表1 CROSS JOIN 表2 WHERE 表1.关系字段 = 表2.关系字段;
 */
 
 -- 示例2：使用内连接，查询根类别表（sort表）和子类别表（subsort表）中的根类别名称和子类别名称。
-SELECT Sort_name, SubSort_name
+SELECT *
 FROM sort INNER JOIN subsort ON sort.Sort_ID = subsort.Sort_ID;
+select count(*) from subsort join sort on sort.Sort_ID = subsort.Sort_ID;
 
 SELECT Sort_name, SubSort_name
 FROM sort CROSS JOIN subsort ON sort.Sort_ID = subsort.Sort_ID;
@@ -76,7 +77,7 @@ SELECT * FROM SORT;  -- 不去重
 
 select a.sort_id, count(*)
 from (SELECT * FROM SORT 
-	UNION ALL 
+	UNION 
 	SELECT * FROM SORT) a
 group by a.sort_id
 order by a.sort_id;
@@ -141,42 +142,45 @@ WHERE product.sort_id=sort.sort_id and sort.sort_id=subsort.sort_id;
 
 -- 思考：如何实现减和交操作
 
-CREATE OR REPLACE VIEW VIEW_A AS
+CREATE TABLE t_a AS
 SELECT product_id, product_name, price FROM product WHERE sort_id = 11;
 
-CREATE OR REPLACE VIEW VIEW_B AS
+CREATE TABLE t_b AS
 SELECT product_id, product_name, price FROM product WHERE price > 1000;
 
 -- 交
+SELECT *
+FROM t_a NATURAL JOIN t_b;
+
 SELECT product_id, product_name, price
-FROM view_a
+FROM t_a
 WHERE (product_id, product_name, price) IN (SELECT product_id, product_name, price
-	FROM view_b);
+	FROM t_b);
 
 select l.*
-from view_a l LEFT JOIN view_b r on l.product_id=r.product_id AND l.product_name=r.product_name AND l.price=r.price
+from t_a l LEFT JOIN t_b r on l.product_id=r.product_id AND l.product_name=r.product_name AND l.price=r.price
 where r.product_id is not null and r.product_name is not null and r.price is not null;
 
 SELECT product_id, product_name, price
-FROM view_a AS o
+FROM t_a AS o
 WHERE EXISTS(SELECT product_id
-	FROM view_b
+	FROM t_b
 	WHERE product_id= o.product_id AND product_name=o.product_name AND price=o.price);
 
 -- 减
 SELECT product_id, product_name, price
-FROM view_a
+FROM t_a
 WHERE (product_id, product_name, price) NOT IN (SELECT product_id, product_name, price
-	FROM view_b);
+	FROM t_b);
 
 select l.*
-from view_a l LEFT JOIN view_b r on l.product_id=r.product_id AND l.product_name=r.product_name AND l.price=r.price
+from t_a l LEFT JOIN t_b r on l.product_id=r.product_id AND l.product_name=r.product_name AND l.price=r.price
 where r.product_id is null and r.product_name is null and r.price is null;
 
 SELECT product_id, product_name, price
-FROM view_a AS o
+FROM t_a AS o
 WHERE NOT EXISTS(SELECT product_id
-	FROM view_b
+	FROM t_b
 	WHERE product_id= o.product_id AND product_name=o.product_name AND price=o.price);
     
 --
