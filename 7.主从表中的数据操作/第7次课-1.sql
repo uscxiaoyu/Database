@@ -112,6 +112,8 @@ WHERE sort_id IN (SELECT sort_id
     WHERE sort_name='办公机器设备');
 
 -- 方法4：使用连接查询
+select * from product limit 10;
+
 SELECT p.*
 FROM product p JOIN sort s ON p.sort_id = s.sort_id
 WHERE s.sort_name = '办公机器设备';
