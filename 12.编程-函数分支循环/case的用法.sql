@@ -106,6 +106,7 @@ values('Miles', 30000), ('Jack', 27000), ('Lucy', 22000), ('Mike', 29000);
 2. 对当前工资为25000以上且不满28000的员工，加薪20%
 */
 
+set autocommit = 0;
 -- 条件1
 update employee
 set salary = 0.9*salary

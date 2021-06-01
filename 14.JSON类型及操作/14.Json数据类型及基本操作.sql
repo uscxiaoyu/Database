@@ -1,122 +1,85 @@
-## `JSON`数据类型及操作方法
-
-从`MySQL5.7`开始，`MySQL`支持了`JavaScript`对象表示数据类型。在`MySQL5.7.8`之前，`JSON`不是单独的数据类型，会被存储为字符串；在`MySQL5.7.8`之后的版本，`JSON`为单独数据类型，提供了自动验证的`JSON`文档以及优化的存储格式。`JSON`文档以二进制格式存储，它提供一下功能：
-
-- 对文档元素的快速读取访问
-- 当服务器再次度`JSON`文档时，不需要重新解析文本获取该值
-- 通过键或数组索引直接查找子对象或嵌套值，而不需要读取文档中的所有值
-
-## 一、创建
-
-### 1. `JSON`类型
-
-```mysql
+use purchase;
 CREATE TABLE emp_details (emp_no int primary key,
                          detail json);
-```
+                         
+insert into emp_details (emp_no, detail)
+values (1, '{"location": "IN", "phone": "+15612344321", "email": "abc@example.com", "address": {"line1": "abc", "line2": "xyz street", "city":"Bangalore", "pin": "560103"}}');
 
-` JSON`的类型
+-- 注意 -> 和 ->> 的区别
+select emp_no, detail->'$.address.pin' pin
+from emp_details;
 
-- array:
+select emp_no, detail->>'$.address.pin' pin
+from emp_details;
 
-```mysql
-["abc", 10, null, true, false]
-["12:18:29.000000", "2015-07-29", "2015-07-29 12:18:29.000000"]
-```
+-- json_pretty()
+select emp_no, JSON_PRETTY(detail) 
+from emp_details;
 
-- object
+select emp_no, detail
+from emp_details;
 
-```mysql
-{"k1": "value", "k2": 10}
-```
-
-**注意**
-
-> - object的键必须为字符串
->
-> - 嵌套结构是合法的：
->
-> ```mysql
-> [99, {"id": "HK500", "cost": 75.99}, ["hot", "cold"]]
-> {"k1": "value", "k2": [10, 20]}
-> ```
-
-### 2. `JSON`的创建
-
-#### 2.1 `JSON ARRAY`
-
-```mysql
+-- 2.1 JSON ARRAY
 SELECT JSON_ARRAY("abc", 10, null, true, false);
 SELECT CAST('["abc", 10, null, true, false]' as JSON);
 SELECT convert('["abc", 10, null, true, false]', JSON);
-```
 
-- 创建`json`类型的属性
-
-```mysql
+-- 插入json array值
 CREATE TABLE t(id int, c JSON);
-```
 
-- 插入`json array`值
-
-```mysql
+-- 插入
 INSERT INTO t(c) VALUES('[1, 2, [0, 1]]');  -- 插入数组[1, 2, [0, 1]]
 INSERT INTO t SET c = '[1, "2", ["0", 1]]'; -- 插入数组[1, "2", ["0", 1]]
-```
 
-- 查询`json array`中的元素
-
-```mysql
-SELECT c->'$[2][0]' FROM t;
 SELECT * FROM t;
 
--- 判断json列中是否包含某个值
-SELECT JSON_CONTAINS(c, '"2"', '$[1]') -- 返回c中第二个元素是否为"2"的判断（0或1）
+-- 查询json属性
+SELECT c
 FROM t;
-```
+SELECT c->'$[0]'
+FROM t;
+SELECT c->'$[2][0]' 
+FROM t;
 
-> `$`指代根列名
+-- 判断json列中是否包含某个值JSON_CONTAINS
+-- 返回c中第二个元素是否为"2"的判断（0或1）
+SELECT JSON_CONTAINS(c, '"2"', '$[1]') 
+FROM t;
 
-- 搜索某个子元素的位置
-
-```mysql
--- 某个值的引用
+-- 搜索某个子元素的位置
 SELECT JSON_SEARCH(c, 'all', '2')
 FROM t;
-```
 
-- 在`json array`中添加元素: `JSON_ARRAY_APPEND,JSON_ARRAY_INSERT `
-
-```mysql
+-- 在`json array`中添加元素: `JSON_ARRAY_APPEND,JSON_ARRAY_INSERT `
 -- 末尾添加元素JSON_ARRAY_APPEND
 SET @j = '["a", ["b", "c"], "d"]';
 SELECT JSON_ARRAY_APPEND(@j, '$[2]', 1), JSON_ARRAY_APPEND(@j, '$', 1); 
+SELECT C FROM t;
 
 SET @k = '{"a": 1}';
 SELECT JSON_ARRAY_APPEND(@k, '$.a', 'z'), JSON_ARRAY_APPEND(@k, '$', 'z');
 
 -- 数组插入元素JSON_ARRAY_INSERT
 SET @j = '["a", ["b", "c"], "d"]';
-SELECT JSON_ARRAY_INSERT(@j, '$[1][1]', 1), JSON_ARRAY_INSERT(@j, '$[2]', 1); 
-```
-- 删除`json array`元素: `JSON_REMOVE`
+SELECT JSON_ARRAY_INSERT(@j, '$[1][1]', 1), JSON_ARRAY_INSERT(@j, '$[2]', 1);
 
-```mysql
-SET @j = '["a", ["b", "c"], "d"]';
+-- 删除`json array`元素: `JSON_REMOVE`
 SELECT JSON_REMOVE(@j, '$[1]'); -- ["a", "d"]
 SELECT @j; -- ["a", ["b", "c"], "d"]
-```
 
-#### 2.2 `JSON OBJECT`
-
-```mysql
+-- 2.2 JSON OBJECT
 SELECT JSON_OBJECT(1, 'A', 2, 'B');
 SELECT JSON_TYPE('{"a":1, "b":2}');
 
 -- NULL
 SELECT CAST('null' AS JSON);
 
--- 查看是否包含某个键， 有特殊字符的键必须用双引号，不能用单引号括起来。
+-- 查看是否包含某个键，有特殊字符的键必须用双引号，不能用单引号括起来。
+CREATE TABLE dynamicDoc (
+	docid varchar(25),
+    exattrs json
+);
+
 SET @col1='$."FAQ.IVR"';
 SET @col2='$."FAQ.在线"';
 SET @col3='$."FAQ.坐席"';
@@ -149,10 +112,8 @@ SELECT docid, JSON_STORAGE_SIZE(EXATTRS)
 FROM dynamicDoc
 WHERE EXATTRS->>'$."FAQ.IVR"' is not null
 LIMIT 10;
-```
-## 二、 `JSON`常用函数和方法
 
-```mysql
+-- 二、json常用函数和方法
 -- JSON_KEYS()查看OBJECT中的键
 SELECT DOCID, JSON_KEYS(EXATTRS)
 FROM dynamicDoc
@@ -167,7 +128,7 @@ LIMIT 10;
 
 -- 插入元素
 SET @l = '{ "a": 1, "b": [2, 3]}';
-SELECT JSON_INSERT(@l, '$.a', 10, '$.c', '[true, false]'); -- 已有的不替代
+SELECT JSON_INSERT(@l, '$.a', 10, '$.c', '[true, false]'); -- 已有的不替代，注意c列插入的是字符串
 SELECT JSON_INSERT(@l, '$.a', 10, '$.c', CAST('[true, false]' AS JSON));  -- 转换JSON类型
 
 -- 查找JSON对象中元素的个数
@@ -179,23 +140,14 @@ SELECT CAST(@v1 AS UNSIGNED);
 
 -- 更新值 JSON_SET, JSON_INSERT, JSON_REPLACE
 SET @j = '{ "a": 1, "b": [2, 3]}';
-SELECT JSON_SET(@j, '$.a', 10, '$.c', CAST('[true, false]' AS JSON));
-SELECT JSON_SET(@j, '$.a', 10, '$.c', JSON_ARRAY(true, false));
+SELECT JSON_INSERT(@l, '$.a', 10, '$.c', JSON_ARRAY(true, false));  -- a子列保持不变
+SELECT JSON_SET(@j, '$.a', 10, '$.c', JSON_ARRAY(true, false)); -- 插入c子列和替换a子列
+SELECT JSON_REPLACE(@j, '$.a', 10, '$.c', JSON_ARRAY(true, false)); -- 不插入c子列
 
-```
-
-
-
->  [`JSON_SET()`](https://dev.mysql.com/doc/refman/8.0/en/json-modification-functions.html#function_json-set), [`JSON_INSERT()`](https://dev.mysql.com/doc/refman/8.0/en/json-modification-functions.html#function_json-insert) 和[`JSON_REPLACE()`](https://dev.mysql.com/doc/refman/8.0/en/json-modification-functions.html#function_json-replace) 等函数的区别:
->
->  - [`JSON_SET()`](https://dev.mysql.com/doc/refman/8.0/en/json-modification-functions.html#function_json-set) 替换已存在值和插入表中不存在的值.
->  - [`JSON_INSERT()`](https://dev.mysql.com/doc/refman/8.0/en/json-modification-functions.html#function_json-insert) 插入不存在的值，不替代表中不存在的值.
->  - [`JSON_REPLACE()`](https://dev.mysql.com/doc/refman/8.0/en/json-modification-functions.html#function_json-replace) 替代已存在的值，不插入表中不存在的值.
-
-## 三、案例
-
-```mysql
+-- 三、案例
 -- 创建person表
+DROP TABLE IF EXISTS person;
+
 CREATE TABLE person(id int PRIMARY key, 
 	`name` JSON,
 	phones JSON,
@@ -239,7 +191,7 @@ WHERE id = 10001;
 -- 深层更新：更新id为1001的人的地址：building为"行知楼"
 SELECT id, address
 FROM person;
+
 UPDATE person
 SET address = JSON_REPLACE(address, '$.street.building', '行知楼')
-WHERE id = 10001;;
-```
+WHERE id = 10001;
