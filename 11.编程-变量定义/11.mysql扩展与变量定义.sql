@@ -184,7 +184,7 @@ select * from Product where product_code = '1101001';
 
 -- 示例16：通过自定义变量查询sort_name为纸张的所有产品信息
 select * from sort;
-select sort_id into @v_sortid from sort where sort_name = '纸张';
+select sort_id into @v_sortid from sort where sort_name = '纸张' limit 1;
 select * from product where sort_id = @v_sortid;
 
 select product.* from product join sort on product.sort_id = sort.sort_id
@@ -193,13 +193,17 @@ where sort_name = '纸张';
 -- 示例6：从`product`表所有记录奇数行构成的集合。
 SELECT row_num, product_id, product_name, price
 FROM (SELECT @row_num := @row_num + 1 AS row_num, product_id, product_name, price
-	FROM product, (SELECT @row_num := 0) AS r
-    ORDER BY cast(product_id as signed)) AS b_product
+	FROM product, (SELECT @row_num := 0) AS r) AS b_product
 WHERE row_num mod 2 != 0;
 
 SELECT @row_num := @row_num + 1 AS row_num, product_id, product_name, price
-FROM product, (SELECT @row_num := 0) AS r
-ORDER BY cast(product_id as signed);
+FROM product, (SELECT @row_num := 0) AS r;
+
+select * from product where product_id is null;
+
+delete from product where product_id is null;
+
+select * from product;
 
 
 SELECT @row_num := 0;
