@@ -35,7 +35,7 @@ DELIMITER ;
 -- 调用
 CALL delete_expired_records_proc();
 
--- 3. 定义存储过程`update_remark_proc`，通过定义游标，逐行更新`orders`表中的价格`remark`：如果`quantity<10`，更新`remark`的值为`'小批量订单'`；
+-- 3. 定义存储过程`update_remark_proc`，通过定义游标，逐行更新`orders`表中的`remark`：如果`quantity<10`，更新`remark`的值为`'小批量订单'`；
 -- 如果`quantity`在10和50之间，更新`remark`的值为`'中批量订单'`；如果`quantity>50`，更新`remark`的值为`'大批量订单'`。
 DROP PROCEDURE IF EXISTS update_remark_proc;
 DELIMITER $$
@@ -65,6 +65,7 @@ BEGIN
 			WHERE order_id = v_order_id;
 		END IF;
 	END WHILE;
+    CLOSE order_cur;
 END;
 $$
 DELIMITER ;

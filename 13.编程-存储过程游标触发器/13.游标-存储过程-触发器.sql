@@ -45,7 +45,7 @@ $$
 delimiter ;
 
 -- 插入100行
-CALL insert_many_rows(100);
+CALL insert_many_rows(10);
 SELECT * FROM test_table;
 
 
@@ -63,7 +63,7 @@ $$
 delimiter ;
 
 SET @v_sort_id = '11';
-CALL sort_count_proc(@v_sort_id, @v_product_count);
+CALL sort_count_proc('12', @v_product_count);
 SELECT @v_product_count;
 
 -- 查看存储过程的创建语句
@@ -98,6 +98,8 @@ COMMENT '统计某一个类别下的产品数量';
 
 select * from sort;
 
+select * from a;
+
 -- 示例5：为错误状态定义名称
 DROP PROCEDURE IF EXISTS exp_proc_1
 DELIMITER $$
@@ -119,6 +121,8 @@ DELIMITER ;
 
 -- 示例6：定义存储程序，往`sort`表插入数据行，如果插入成功，则设置会话变量为0；如果插入重复值，则设置会话变量为1.
 ALTER TABLE sort MODIFY sort_id CHAR(2) PRIMARY KEY;
+
+select * from sort;
 
 DROP PROCEDURE IF EXISTS proc_demo;
 DELIMITER $$
@@ -273,7 +277,9 @@ set salary=185000
 where id='10101';
 
 insert into instructor 
-values('11111', 'Steve', 'Finance', 160000);
+values('11111', 'Steve', 'Finance', 140000);
+
+select * from instructor;
 
 delete from instructor 
 where id='11111';
@@ -289,6 +295,7 @@ where id='11111';
     - 新增一行时，检查主表是否存在被参照值，如果不存在，则插入失败。
     - 更新一行时，检查主表是否存在被参照值，如果不存在，则更新失败。
 */
+show create table subsort;
 -- sort表上的更新，on update cascade
 DROP TRIGGER IF EXISTS sort_update_after_trigger;
 DELIMITER $$
@@ -317,11 +324,12 @@ DROP TRIGGER IF EXISTS subsort_insert_before_trigger;
 DELIMITER $$
 CREATE TRIGGER subsort_insert_before_trigger BEFORE INSERT ON subsort FOR EACH ROW
 BEGIN
-	SELECT COUNT(*) INTO @row_count 
+	DECLARE r_count INT;
+	SELECT COUNT(*) INTO r_count 
 	FROM sort 
 	WHERE sort_id=new.sort_id;
 	
-	IF (@row_count = 0) THEN
+	IF (r_count = 0) THEN
 		INSERT INTO mytable VALUES (0);
 	END IF;
 END;
@@ -333,11 +341,12 @@ DROP TRIGGER IF EXISTS subsort_update_before_trigger;
 DELIMITER $$
 CREATE TRIGGER subsort_update_before_trigger BEFORE UPDATE ON subsort FOR EACH ROW
 BEGIN
-	SELECT COUNT(*) INTO @row_count 
+	DECLARE r_count INT;
+	SELECT COUNT(*) INTO r_count 
 	FROM sort 
 	WHERE sort_id=new.sort_id;
 	
-	IF (@row_count = 0) THEN
+	IF (r_count = 0) THEN
 		INSERT INTO mytable VALUES (0);
 	END IF;
 END;
@@ -348,19 +357,21 @@ DELIMITER ;
 SHOW CREATE TABLE SORT;
 SHOW CREATE TABLE SUBSORT;
 
-DELETE FROM SORT WHERE SORT_ID = 93;
+SELECT * FROM subsort WHERE sort_id=91;
+
+DELETE FROM SORT WHERE SORT_ID = 91;
 SELECT * FROM SORT;
-SELECT * FROM SUBSORT WHERE SORT_ID = 93;
+SELECT * FROM SUBSORT WHERE SORT_ID = 91;
 
 -- 插入
 insert into subsort(subsort_id, subsort_name, sort_id)
-values (9901, 'test', 93); -- 插入失败， error code 1146
+values (9301, 'test', 93); -- 插入失败， error code 1146
 
 insert into sort (sort_id, sort_name)
 values (93, 'test-sort'); -- 执行之后
 
 insert into subsort(subsort_id, subsort_name, sort_id)
-values (9901, 'test', 93); -- 插入成功
+values (9301, 'test', 93); -- 插入成功
 
 -- 更新
 set sql_safe_updates=0;
@@ -374,7 +385,7 @@ select * from subsort where subsort_name = 'test';
 
 -- 更新subsort
 update subsort
-set sort_id = 94
+set sort_id = 93
 where subsort_name = 'test'; -- 执行失败， error 1146
 
 -- 删除
