@@ -24,21 +24,25 @@ CREATE TABLE test_table (id INT AUTO_INCREMENT PRIMARY KEY,
 	a VARCHAR(10), 
     b VARCHAR(10));
 SELECT * FROM test_table;
+truncate test_table;
 
 DROP PROCEDURE IF EXISTS insert_many_rows;
 delimiter $$
 CREATE PROCEDURE insert_many_rows (IN loops INT)
+MODIFIES SQL DATA
 BEGIN
 	DECLARE v1 INT;
+    DECLARE i INT;
     SET v1 = loops;
+    SET i = 1;
     WHILE v1 > 0 DO
-		INSERT INTO test_table(id, a, b) VALUES (NULL, 'qpq', 'rst');
+		INSERT INTO test_table(id, a, b) VALUES (i, 'qpq', 'rst');
         SET v1 = v1 - 1;
+        SET i = i + 1;
 	END WHILE;
 END;
 $$
 delimiter ;
-DROP PROCEDURE insert_many_rows;
 
 -- 插入100行
 CALL insert_many_rows(100);
@@ -59,15 +63,16 @@ $$
 delimiter ;
 
 SET @v_sort_id = '11';
-#SET @v_product_count = 0;
 CALL sort_count_proc(@v_sort_id, @v_product_count);
 SELECT @v_product_count;
 
 -- 查看存储过程的创建语句
-SHOW CREATE PROCEDURE <proc_name>
+-- SHOW CREATE PROCEDURE <proc_name>
+SHOW CREATE PROCEDURE sort_count_proc;
 
 -- 根据指定的模式查看所有符合要求的存储过程
-SHOW PROCEDURE STATUS [LIKE 匹配模式];
+-- SHOW PROCEDURE STATUS [LIKE 匹配模式];
+SHOW procedure status;
 
 -- 直接在information_schema.routines中查询
 SELECT * 
@@ -89,7 +94,6 @@ AND ROUTINE_SCHEMA='purchase';
 
 -- 示例4: 修改`sort_count_proc`定义
 ALTER PROCEDURE sort_count_proc
-SQL SECURITY INVOKER
 COMMENT '统计某一个类别下的产品数量';
 
 select * from sort;
