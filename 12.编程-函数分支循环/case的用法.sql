@@ -54,6 +54,24 @@ natural join (SELECT c_id, c_name, avg(score) 女生平均分
 order by c_id;
 
 
+SELECT a.c_id, c_name, 男生平均分, 女生平均分
+FROM 
+(SELECT c_id from course) a
+LEFT JOIN
+(SELECT c_id, c_name, avg(score) 男生平均分
+		from course natural join takes natural join student
+	    where gender = '男'
+		group by c_id) b
+ON a.c_id = b.c_id
+LEFT JOIN 
+(SELECT c_id, c_name, avg(score) 女生平均分
+		from course natural join takes natural join student
+		where gender = '女'
+		group by c_id) c
+ON a.c_id = c.c_id
+ORDER BY c_id;
+
+
 -- 使用case when
 SELECT c_id, c_name, avg(case gender when '男' then score else null end) 男生平均分,
 	avg(case gender when '女' then score else null end) 女生平均分

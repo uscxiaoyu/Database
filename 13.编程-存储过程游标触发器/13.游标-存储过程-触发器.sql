@@ -235,7 +235,6 @@ delimiter $$
 create trigger instru_update_before_trigger before update on instructor for each row
 begin
     if (new.salary > 150000) then -- new为更新前的行值
-        set new.salary = old.salary;  -- 如果高于150000，则重新更新为原来的值
         insert into mytable values(0); -- 因为mytable未经定义，触发异常，更新操作失败。
     end if;
 end;
@@ -272,12 +271,13 @@ WHERE EVENT_OBJECT_SCHEMA = 'purchase';
 -- 插入记录
 select * from instructor;
 
+-- 更新10101的薪水为185000
 update instructor 
 set salary=185000 
 where id='10101';
 
 insert into instructor 
-values('11111', 'Steve', 'Finance', 140000);
+values('11112', 'Steve', 'Finance', 160000);
 
 select * from instructor;
 
@@ -296,6 +296,7 @@ where id='11111';
     - 更新一行时，检查主表是否存在被参照值，如果不存在，则更新失败。
 */
 show create table subsort;
+alter table subsort drop foreign key fk_sortid_sort;
 -- sort表上的更新，on update cascade
 DROP TRIGGER IF EXISTS sort_update_after_trigger;
 DELIMITER $$
@@ -311,7 +312,7 @@ DELIMITER ;
 -- sort表上的删除，on delete cascade
 DROP TRIGGER IF EXISTS sort_delete_before_trigger;
 DELIMITER $$
-CREATE TRIGGER sort_delete_before_trigger BEFORE DELETE ON sort FOR EACH ROW
+CREATE TRIGGER sort_delete_before_trigger AFTER DELETE ON sort FOR EACH ROW
 BEGIN
 	DELETE FROM subsort
 	WHERE sort_id = old.sort_id;
@@ -322,7 +323,7 @@ DELIMITER ;
 -- subsort表上的插入
 DROP TRIGGER IF EXISTS subsort_insert_before_trigger;
 DELIMITER $$
-CREATE TRIGGER subsort_insert_before_trigger BEFORE INSERT ON subsort FOR EACH ROW
+CREATE TRIGGER subsort_insert_before_trigger AFTER INSERT ON subsort FOR EACH ROW
 BEGIN
 	DECLARE r_count INT;
 	SELECT COUNT(*) INTO r_count 
@@ -361,19 +362,21 @@ SELECT * FROM subsort WHERE sort_id=91;
 
 DELETE FROM SORT WHERE SORT_ID = 91;
 SELECT * FROM SORT;
+SELECT * FROM SUBSORT;
 SELECT * FROM SUBSORT WHERE SORT_ID = 91;
 
 -- 插入
 insert into subsort(subsort_id, subsort_name, sort_id)
 values (9301, 'test', 93); -- 插入失败， error code 1146
+SELECT * FROM SUBSORT WHERE subsort_id=9301;
 
 insert into sort (sort_id, sort_name)
-values (93, 'test-sort'); -- 执行之后
+values (93, 'test-sort'); -- 执行sort_id中的插入之后
 
 insert into subsort(subsort_id, subsort_name, sort_id)
 values (9301, 'test', 93); -- 插入成功
 
--- 更新
+-- 更新sort
 set sql_safe_updates=0;
 
 update sort
@@ -388,7 +391,7 @@ update subsort
 set sort_id = 93
 where subsort_name = 'test'; -- 执行失败， error 1146
 
--- 删除
+-- 删除sort
 select * from sort where sort_name = 'test-sort';
 
 delete from sort
@@ -403,6 +406,8 @@ select * from subsort where subsort_name = 'test';
 -- 示例10：创建一个立即启动的事件。
 USE PURCHASE;
 SHOW VARIABLES LIKE '%event_scheduler%';
+
+SET GLOBAL event_scheduler=1;
 
 CREATE TABLE demo_tb(id int primary key auto_increment,
                     name varchar(20),
@@ -492,7 +497,8 @@ VALUES ('BIO-301', 'BIO-101'),
 	('CS-101', 'CS-10'),
 	('CS-10', 'CS-1');
 
-SELECT a.*, b.*
+-- 查询以CS-101为前行课程的课程
+SELECT b.*
 FROM prereq a JOIN prereq b ON a.course_id = b.prereq_id
 WHERE a.course_id = 'CS-101';
 
@@ -501,6 +507,7 @@ select course_id, prereq_id, 0 as lev, course_id as tree_path
 	where course_id = 'CS-10';
 
 -- MYSQL8以上版本支持以下语法
+-- 查询CS-10的所有后继课程
 with recursive tree_course(course_id, prereq_id, lev) as (
 	select course_id, prereq_id, 0 as lev
 	from prereq 
@@ -530,9 +537,9 @@ BEGIN
 	FROM prereq
 	WHERE course_id = v_course_id; -- 首轮节点对应的子节点
   
-	WHILE row_count() > 0 DO
+	WHILE row_count() > 0 DO  -- row_count()函数可得到上一次数据更新行数
 		DROP TEMPORARY TABLE if exists temp;
-		CREATE TEMPORARY TABLE temp -- 保存下一次迭代查询的父节点
+		CREATE TEMPORARY TABLE temp -- temp用以保存下一次迭代查询的父节点集合
 			SELECT * FROM tree_prereq WHERE lev = v_lev;
 		SET v_lev = v_lev + 1; -- 更新层级
 		INSERT INTO tree_prereq(course_id, prereq_id, lev)
@@ -597,9 +604,10 @@ CREATE TABLE his_log(id int primary key auto_increment,
 DELIMITER $$
 CREATE TRIGGER his_log_constant_rows_trigger BEFORE INSERT ON his_log FOR EACH ROW
 BEGIN
-	SELECT COUNT(*) INTO @num_rows
+	DECLARE num_rows INT;
+	SELECT COUNT(*) INTO num_rows
 	FROM his_log;
-	IF (@num_rows >= 10000) THEN
+	IF (num_rows >= 10000) THEN
 		DELETE FROM his_log
 		ORDER BY operate_time LIMIT 1;
 	END IF;
@@ -624,6 +632,7 @@ DELIMITER ;
 -- 示例16：首先，定义存储过程，检查`orders`表的`product_id`都在`product`表中，如果不在，则将对应的行移动到`orders_suspend`表中（`orders_suspend`有`orders`所有字段，且有`insert_time`字段记录移动时间）。
 -- 然后，定义事件，在每天`00:00:00`执行该检查。
 USE purchase;
+alter table `order` rename orders;
 -- 定义表orders_suspend
 CREATE TABLE orders_suspend SELECT * FROM orders WHERE 1 = 0;
 ALTER TABLE orders_suspend ADD insert_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP();
@@ -639,7 +648,7 @@ BEGIN
 	-- 检查是否有不符合外键约束的记录
 	SELECT COUNT(*) INTO v_diff
 	FROM orders a LEFT JOIN product b ON a.product_id = b.product_id
-	WHERE b.product_id IS NULL LIMIT 1;
+	WHERE b.product_id IS NULL;
 	-- 如果有，则转移问题记录
 	IF (v_diff > 0) THEN
 		-- 将不符合外键约束的行移至orders_suspend
