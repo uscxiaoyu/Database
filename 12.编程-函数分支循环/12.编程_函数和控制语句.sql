@@ -277,11 +277,12 @@ begin
   	add_num : while true do
 	set start_num = start_num + 1;
     if start_num <= n then
-			if (start_num % 3) = 0 then
-				set accum_sum = accum_sum + start_num;
-			else iterate add_num;
-      end if;
-		else leave add_num;
+			if (start_num % 3) != 0 then
+				iterate add_num;
+			end if;
+			set accum_sum = accum_sum + start_num;
+	else 
+		leave add_num;
     end if;
 	end while add_num;
   	return accum_sum;

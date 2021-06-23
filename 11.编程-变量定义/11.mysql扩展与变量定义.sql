@@ -40,6 +40,7 @@ CREATE TABLE person(
     `name` varchar(50) generated always as (concat(first_name, ' ', last_name)) stored,
     index idx_name (`name`));
 
+show create table person;
 
 alter table person modify `name` varchar(50) generated always as (concat(first_name, ' ', last_name)) stored;
 
@@ -62,6 +63,16 @@ CREATE TABLE t1 (
 );
 
 show create table t1;
+
+CREATE TABLE jemp (
+	c JSON,
+	g INT GENERATED ALWAYS AS (c->"$.id"),
+INDEX i (g));
+
+insert into jemp (c)
+values ('{"id": 1, "name":"John"}');
+
+select * from jemp;
 
 -- 二、变量定义
 use purchase;
@@ -95,9 +106,15 @@ select hex(42), hex(16);  -- 把10进制数转化为16进制
 -- 1.7 null
 select null, null > 1;  -- null与任何值进行比较的结果为null
 
-
+show processlist;
 select connection_id();
 -- 2. 用户自定义变量
+show variables like "%character%";
+
+-- 系统变量
+select @@autocommit;
+select @@sql_mode;
+select @@character_set_database;
 -- 2.1 用户会话变量
 -- 方法1：set
 set @user_name = '张三'; -- 变量数据类型由等号右边表达式的计算结果决定
@@ -140,7 +157,7 @@ use purchase;
 -- 方法1: set @变量名 = select语句
 set @product_count = (select count(*) from Product where product_id is not null);
 select @product_count as 产品数量;
-
+-- 注意：返回值需要唯一
 set @product_count = (select sort_id from Product where product_id is not null group by sort_id);
 
 -- 方法2: select @变量名 := select语句
@@ -165,22 +182,29 @@ select * from Product where product_code = @product_code;
 
 select * from Product where product_code = '1101001';
 
--- 课堂示例16：通过自定义变量查询sort_name为纸张的所有产品信息
+-- 示例16：通过自定义变量查询sort_name为纸张的所有产品信息
 select * from sort;
-select sort_id into @v_sortid from sort where sort_name = '纸张';
+select sort_id into @v_sortid from sort where sort_name = '纸张' limit 1;
 select * from product where sort_id = @v_sortid;
 
 select product.* from product join sort on product.sort_id = sort.sort_id
 where sort_name = '纸张';
 
-
+-- 示例6：从`product`表所有记录奇数行构成的集合。
 SELECT row_num, product_id, product_name, price
 FROM (SELECT @row_num := @row_num + 1 AS row_num, product_id, product_name, price
 	FROM product, (SELECT @row_num := 0) AS r) AS b_product
-WHERE row_num mod 100 = 0;
+WHERE row_num mod 2 != 0;
 
 SELECT @row_num := @row_num + 1 AS row_num, product_id, product_name, price
 FROM product, (SELECT @row_num := 0) AS r;
+
+select * from product where product_id is null;
+
+delete from product where product_id is null;
+
+select * from product;
+
 
 SELECT @row_num := 0;
 
@@ -326,7 +350,7 @@ values(3, 'f', 5), (4, 'e', 8); -- 相当于update和insert into
 
 -- 小心以下更新
 replace into p (p_id, p_name, price)
-values(3, 'e', 6); -- 更新p_id值为3的行(3, 'f', 3) -> (3, 'e', 6)；更新p_name为'e'的行(4, 'e', 8) -> (3, 'e', 6).
+values(3, 'e', 6); -- 更新p_id值为3的行(3, 'f', 3) -> (3, 'e', 6)；更新p_name为'e'的行(4, 'e', 8) -> (3, 'e', 6), 然后去重.
 
 -- 五、临时表
 /*

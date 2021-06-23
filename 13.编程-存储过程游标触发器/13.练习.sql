@@ -1,5 +1,8 @@
 # 练习1
 use purchase;
+
+select * from information_schema.routines where routine_type = "PROCEDURE";
+show procedure status where db="purchase";
 -- 1. 定义存储过程`product_count_proc`，输入参数`v_sort_id`，输出参数`v_sort_count`，语句块中查询给定类别为`v_sort_id`的产品数量，保存至`v_sort_count`。
 DELIMITER $$
 CREATE PROCEDURE product_count_proc (IN v_sort_id CHAR(5), OUT v_sort_count INT)
@@ -17,6 +20,8 @@ CALL product_count_proc('11', @v_sort_count);
 SELECT @v_sort_count;
 
 -- 2. 定义存储过程`delete_expired_records_proc`，无参数，语句块实现对`operate_log`30天前插入的记录的删除。
+SELECT current_timestamp();
+
 CREATE TABLE operate_log (id int primary key auto_increment,
                          user_id varchar(50) not null,
                          content varchar(255) not null default '',
@@ -35,7 +40,7 @@ DELIMITER ;
 -- 调用
 CALL delete_expired_records_proc();
 
--- 3. 定义存储过程`update_remark_proc`，通过定义游标，逐行更新`orders`表中的价格`remark`：如果`quantity<10`，更新`remark`的值为`'小批量订单'`；
+-- 3. 定义存储过程`update_remark_proc`，通过定义游标，逐行更新`orders`表中的`remark`：如果`quantity<10`，更新`remark`的值为`'小批量订单'`；
 -- 如果`quantity`在10和50之间，更新`remark`的值为`'中批量订单'`；如果`quantity>50`，更新`remark`的值为`'大批量订单'`。
 DROP PROCEDURE IF EXISTS update_remark_proc;
 DELIMITER $$
@@ -65,6 +70,7 @@ BEGIN
 			WHERE order_id = v_order_id;
 		END IF;
 	END WHILE;
+    CLOSE order_cur;
 END;
 $$
 DELIMITER ;
