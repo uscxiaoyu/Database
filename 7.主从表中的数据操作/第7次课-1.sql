@@ -54,19 +54,36 @@ alter table product add primary key (product_id);
 alter table sort add primary key (sort_id);
 alter table subsort add primary key (subsort_id);
 
-select * from product 
+select *
+from product
 where product_id is null;
+
+select *
+from product
+where product_id in (select product_id
+    from product
+    group by Product_ID
+    having count(*) > 1);
 
 delete from product 
 where product_id is null;
 
 -- (2) 构建`product`表与`sort`表之间的外键约束`fk_sortid1`，外键为`sort_id`
-select product_id, sort_id from product 
+select product_id, sort_id
+from product
 where sort_id not in (select sort_id from sort);
+
+insert into sort
+set sort_id=95, Sort_name='xx';
+
 alter table product 
 add constraint fk_sortid1 foreign key (sort_id) references sort(sort_id);
 
 -- (3) 构建`subsort`表与`sort`表之间的外键约束`fk_sortid2`，外键为`subsort_id`，并设置为`on delete cascade`。
+select SubSort_ID, sort_id
+from subsort
+where sort_id not in (select sort_id from sort);
+
 alter table subsort 
 add constraint fk_sortid2 foreign key (sort_id) references sort(sort_id);
 
@@ -79,11 +96,11 @@ where subsort_id not in (select distinct subsort_id from subsort);
 
 -- 方法1：在出表中插入记录
 insert into subsort(subsort_id, subsort_name, sort_id)
-values (3317, 'a', 33), (6412, 'b', 64);
+values (9501, 'xxxx', 95);
 
 -- 方法2：删除从表中的记录
 DELETE FROM product
-WHERE subsort_id = 3317 OR subsort_id = 6412;  -- 删除对应记录
+WHERE subsort_id = 9501;  -- 删除对应记录
 
 alter table product 
 add constraint fk_subsortid foreign key (subsort_id) references subsort(subsort_id);
@@ -91,7 +108,7 @@ add constraint fk_subsortid foreign key (subsort_id) references subsort(subsort_
 -- 2. 操作关联表
 
 -- 课堂示例3：使用关联关系查询数据-查询根类别为“办公机器设备”的产品
--- 方法1
+-- 方法1: 朴素方法
 SELECT sort_id 
 FROM sort 
 WHERE sort_name='办公机器设备';
