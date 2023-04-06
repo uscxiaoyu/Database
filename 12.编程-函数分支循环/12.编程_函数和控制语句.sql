@@ -439,44 +439,45 @@ $$
 delimiter ;
 
 -- 查询返回所有订单的应付款
-select order_id, cal_due_fn(order_id) from `orders`;
+select order_id, cal_due_fn(order_id) 应付款 from `orders` order by 应付款;
 
 -- 练习3：
 -- 选用一种循环结构，编写函数get_prod_fn，实现从m到n的累乘
 -- loop
+drop function if exists get_prod_fn1;
+
 delimiter $$
 create function get_prod_fn1 (m int, n int) returns bigint
 no sql
 begin
-	declare accum_sum bigint default 1;
+	declare accum_prod bigint default 1;
 	declare num int default m;
 	add_sum : loop
-		set accum_sum = num * accum_sum;
+		set accum_prod = num * accum_prod;
         set num = num + 1;
 		if num = n + 1 then
 			leave add_sum;
 		end if;
 	end loop;
-  	return accum_sum;
+  	return accum_prod;
 end;
 $$
 delimiter ;
-drop function get_prod_fn1;
 
-select get_prod_fn1(10, 15);
+select get_prod_fn1(10, 12);
 
 -- repeat
 delimiter $$
 create function get_prod_fn2 (m int, n int) returns bigint
 no sql
 begin
-	declare accum_sum bigint default 1;
+	declare accum_prod bigint default 1;
 	declare num int default m;
 	repeat
-		set accum_sum = num * accum_sum;
+		set accum_prod = num * accum_prod;
         set num = num + 1;
 	until (num = n + 1) end repeat;
-  	return accum_sum;
+  	return accum_prod;
 end;
 $$
 delimiter ;
@@ -487,13 +488,13 @@ delimiter $$
 create function get_prod_fn3 (m int, n int) returns bigint
 no sql
 begin
-	declare accum_sum bigint default 1;
+	declare accum_prod bigint default 1;
 	declare num int default m;
     while num <= n do
-		set accum_sum = num * accum_sum;
+		set accum_prod = num * accum_prod;
         set num = num + 1;
 	end while;
-	return accum_sum;
+	return accum_prod;
 end;
 $$
 delimiter ;
@@ -504,14 +505,14 @@ select get_prod_fn3(10, 15);
 
 
 -- 2. 选择一种循环结构，编写程序求三位水仙花数之和 [^2]。
--- [^2]: 水仙花数: 对应三位数i，如果它的百位、十位和各位立方之和等于它本身，则这个数为水仙花数。例如153，由于1^3^+5^3^+3^3^=155，则153水仙花数。
+-- [^2]: 水仙花数: 对应三位数i，如果它的百位、十位和各位立方之和等于它本身，则这个数为水仙花数。例如153，由于1^3^+5^3^+3^3^=153，则153水仙花数。
 
 delimiter $$
-create function shuixian_fn(n int) returns int
+create function shuixian_fn() returns int
     no sql
     begin
         declare sum_num int default 0; -- 求和变量初始值为0
-        declare num int default 100;
+        declare num int default 100;  -- 初始化
         declare bai int;
         declare shi int;
         declare ge int;
@@ -523,7 +524,7 @@ create function shuixian_fn(n int) returns int
                 set sum_num = sum_num + num;
             end if;
             set num = num + 1;
-            if num = n then
+            if num = 1000 then
                 leave add_sum;
             end if;
         end loop;
@@ -532,7 +533,7 @@ create function shuixian_fn(n int) returns int
 $$
 delimiter ;
 
-drop function shuixian_fn;
+drop function if exists shuixian_fn;
 
 select 153 div 100, (153 div 10) mod 10, 153 mod 10;
-select shuixian_fn(500);
+select shuixian_fn();

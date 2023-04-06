@@ -292,11 +292,12 @@ FROM sort JOIN subsort ON sort.sort_id = subsort.sort_id
 GROUP BY subsort.subsort_id;
 
 -- 或
-CREATE VIEW view_sort(sort_name,  num_subsort)
+CREATE VIEW view_sort(sort_name, num_subsort)
 AS
 SELECT sort.sort_name, count(subsort.subsort_id) AS num_subsort
 FROM sort JOIN subsort ON sort.sort_id = subsort.sort_id
 GROUP BY sort.sort_name;
+
 
 -- (5) 在view_sort视图查询类别名称中有'办公'两个字的所有记录
 SELECT *
@@ -318,18 +319,18 @@ AS
 SELECT user_name, true_name, sex, email, address, phone
 FROM member;
 
--- (3) 通过view_memeber更新user_name为'饿狼'的记录的true_name为'胡颖'
+-- (3) 通过view_memeber更新user_name为'饿狼'的记录的true_name为'Mandy'
 SELECT * FROM view_member WHERE user_name = '饿狼';
 
 UPDATE view_member
-SET true_name = '胡颖'
+SET true_name = 'Mandy'
 WHERE user_name = '饿狼';
 
 SELECT * FROM view_member WHERE user_name = '饿狼';
 SELECT * FROM member WHERE user_name = '饿狼';
 
 -- (4) 通过view_memeber插入一条记录，user_name为'风清扬', true_name为'张三丰', sex为'女'
-INSERT INTO view_member(user_name,true_name, sex)
+INSERT INTO view_member(user_name, true_name, sex)
 VALUES ('风清扬', '张三丰', '女');
 
 SELECT * FROM view_member WHERE user_name = '风清扬';

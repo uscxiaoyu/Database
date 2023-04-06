@@ -5,7 +5,13 @@ use purchase;
 /*列出特定字段名对应数据的语法格式如下:
 SELECT 字段名1, 字段名2, ..., 字段名n FROM 表名; */
 
+select 1 + 1, now();
+select @@sql_safe_updates;
+
 -- 示例1: 通过列出所有字段名查询product表的数据
+select *
+from product;
+
 SELECT product_id, product_name, product_code, product_place,
 	product_date, price, unit, detail, subsort_id, sort_id
 FROM product;
