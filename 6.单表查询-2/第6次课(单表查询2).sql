@@ -5,11 +5,15 @@ use purchase;
 SELECT AVG(price), MAX(price), MIN(price) 
 FROM product;
 
+select product_id, price
+from product
+where price is null;
+
 select * from product;
 
 -- 示例2：使用count()统计product表中的记录个数
 SELECT COUNT(*) FROM product;
-SELECT COUNT(product_name) FROM product;
+SELECT COUNT(price) FROM product;
 SELECT product_name FROM product where product_name is not null;
 SELECT COUNT(*) FROM product WHERE product_name IS NOT NULL; 
 SELECT COUNT(*) FROM product WHERE product_name IS NULL; 
@@ -48,7 +52,7 @@ select product_id from product limit 10;
 
 SELECT product_id, product_name, product_place, price
 FROM product
-ORDER BY product_id DESC;
+ORDER BY product_id asc;
 
 SELECT product_id, product_name, product_place, price
 FROM product
@@ -91,11 +95,13 @@ WHERE product_name LIKE '理光%墨粉'
 GROUP BY product_place;
 
 -- 示例7：按Product_Place分组，显示各产地对应的产品记录个数
-SELECT product_place, COUNT(*)
+SELECT product_place, COUNT(*) 产品数量
 FROM product
 where product_place is not null
 GROUP BY product_place
-having avg(price) > 100;
+having 产品数量 >= 100
+order by 产品数量 desc
+limit 10;
 
 -- 示例8：根据product表计算不同产地的商品单价最大值，按Product_place降序排列
 SELECT product_place, MAX(price)
@@ -121,7 +127,7 @@ limit 10;
 
 -- group_concat()函数：将某一分组中的某一字段对应的所有字符串连接起来，即返回分组中对应字段的所有值
 -- 示例11：查询各子类对应的product_name，用逗号连接起来
-SELECT subsort_id, group_concat(product_name ORDER BY length(product_name) ASC separator "===")
+SELECT subsort_id, group_concat(product_name ORDER BY length(product_name) ASC separator "~~~~")
 FROM product 
 GROUP BY subsort_id;
 
@@ -146,7 +152,7 @@ SELECT LENGTH(TRIM(' aabdfe '));
 SELECT LENGTH(LTRIM(' aabdfe '));
 SELECT LENGTH(RTRIM(' aabdfe '));
 SELECT REPLACE('背景背景音乐', '背景', '北京');
-SELECT SUBSTRING('abcdef123', 1, 3);
+SELECT SUBSTRING('abcdef123', 3, 3);
 SELECT REVERSE('abcdef123');
 SELECT LOCATE('c','abcdef123');
 
@@ -171,7 +177,7 @@ SELECT DATE_FORMAT(NOW(),'%d %b %y'); -- y 2位年份
 SELECT DATE_FORMAT(NOW(),'%d %b %Y %T:%f'); -- T时间, 24-小时(hh:mm:ss)
 
 -- 示例15：条件判断
-SELECT IF(5>6, '对', '错');
+SELECT IF(5<6, '对', '错');
 SELECT IFNULL(null, '空值'), IFNULL(1, '空值');
 
 -- 让空值排在末尾
@@ -179,7 +185,7 @@ SELECT *
 FROM product 
 ORDER BY price;
 
-SELECT * 
+SELECT *
 FROM product 
 ORDER BY if(price is null, 0, 1) DESC, price ASC;
 
@@ -267,4 +273,7 @@ GROUP BY product_place, MONTH(product_date);
 -- 或者
 SELECT product_id, product_name, product_date, ceiling(Month(product_date)/3) 季度
 FROM product;
-SELECT subsort_id, CAST(CONCAT('[', group_concat('"', product_name, '"'), ']') AS JSON) FROM product GROUP BY subsort_id
+
+SELECT subsort_id, CAST(CONCAT('[', group_concat('"', product_name, '"'), ']') AS JSON)
+FROM product
+GROUP BY subsort_id;

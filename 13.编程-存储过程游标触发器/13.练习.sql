@@ -4,6 +4,9 @@ use purchase;
 select * from information_schema.routines where routine_type = "PROCEDURE";
 show procedure status where db="purchase";
 -- 1. 定义存储过程`product_count_proc`，输入参数`v_sort_id`，输出参数`v_sort_count`，语句块中查询给定类别为`v_sort_id`的产品数量，保存至`v_sort_count`。
+
+-- 定义
+DROP PROCEDURE IF EXISTS product_count_proc;
 DELIMITER $$
 CREATE PROCEDURE product_count_proc (IN v_sort_id CHAR(5), OUT v_sort_count INT)
 READS SQL DATA
@@ -16,7 +19,7 @@ $$
 DELIMITER ;
 
 -- 调用
-CALL product_count_proc('11', @v_sort_count);
+CALL product_count_proc('12', @v_sort_count);
 SELECT @v_sort_count;
 
 -- 2. 定义存储过程`delete_expired_records_proc`，无参数，语句块实现对`operate_log`30天前插入的记录的删除。
@@ -27,6 +30,7 @@ CREATE TABLE operate_log (id int primary key auto_increment,
                          content varchar(255) not null default '',
                          operate_time timestamp default current_timestamp());
 
+DROP PROCEDURE IF EXISTS delete_expired_records_proc;
 DELIMITER $$
 CREATE PROCEDURE delete_expired_records_proc()
 MODIFIES SQL DATA
@@ -87,6 +91,7 @@ SELECT * FROM orders;
 CREATE TABLE product_his SELECT * FROM product WHERE 1=0;
 ALTER TABLE product_his 
 ADD insert_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP();
+
 -- 触发器定义
 DROP TRIGGER IF EXISTS move_product_records_trigger;
 DELIMITER $$
@@ -99,6 +104,7 @@ END;
 $$
 DELIMITER ;
 
+SELECT * FROM product WHERE 1=0;
 SELECT * FROM PRODUCT LIMIT 10;
 DELETE FROM product WHERE product_id = 1;
 
@@ -109,8 +115,12 @@ SELECT product_id, product_name, product_code, product_place, price, product_dat
 
 TRUNCATE product_his;
 
+select current_timestamp();
+
 -- 练习3
 -- 创建事件`check_product_event`，每天凌晨执行，检查`product`中的记录，如果对应的`sort_id`为空或者`sort_id`不在`sort`表中，则删除对应记录。
+select curdate();
+
 DELIMITER $$
 CREATE EVENT check_product_event 
 ON SCHEDULE EVERY 1 DAY STARTS DATE_ADD(curdate(), INTERVAL 1 DAY)
@@ -127,6 +137,14 @@ $$
 DELIMITER ;
 
 -- 练习4
+DROP TABLE IF EXISTS prereq;
+CREATE TABLE prereq (course_id varchar(30) primary key,
+                     prereq_id varchar(30));
+
+INSERT INTO prereq(course_id, prereq_id)
+VALUES ('BIO-301', 'BIO-101'), ('BIO-399', 'BIO-101'), ('CS-190', 'CS-101'),('CS-315', 'CS-101'),
+('CS-319', 'CS-101'), ('CS-347', 'CS-101'), ('EE-181', 'PHY-101'), ('CS-101', 'CS-10'),
+('CS-10', 'CS-1');
 
 -- 1. 迭代查询父节点
 with recursive tree_course(course_id, prereq_id, lev) as (
@@ -136,7 +154,7 @@ with recursive tree_course(course_id, prereq_id, lev) as (
 	union all
 	select p.course_id, p.prereq_id, s.lev - 1 as lev
 	from tree_course s join prereq p on p.course_id = s.prereq_id)
-select * from tree_course;
+select * from tree_course order by lev;
 
 -- 存储过程实现
 DROP PROCEDURE IF EXISTS path_prereq_proc;
@@ -167,7 +185,7 @@ $$
 DELIMITER ;
 
 CALL path_prereq_proc('CS-190');
-SELECT * FROM path_prereq;
+SELECT * FROM path_prereq order by lev;
 
 -- 2. 通用查询后代节点
 DROP PROCEDURE IF EXISTS get_decendent_ids;
@@ -238,10 +256,10 @@ $$
 DELIMITER ;
 
 -- 示例1
-set @tb = "prereq";
-set @id_col = "course_id";
-set @pid_col = "prereq_id";
-set @id_value = "'CS-10'";
+set @tb = "prereq"; # 目标表名称
+set @id_col = "course_id";  # 迭代主属性
+set @pid_col = "prereq_id";  # 迭代连接属性
+set @id_value = "'CS-10'";  # 属性初始值
 
 call get_decendent_ids(@tb, @id_col, @pid_col, @id_value);
 
