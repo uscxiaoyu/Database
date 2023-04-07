@@ -30,7 +30,9 @@ SELECT * FROM 表1 CROSS JOIN 表2 WHERE 表1.关系字段 = 表2.关系字段;
 -- 示例2：使用内连接，查询根类别表（sort表）和子类别表（subsort表）中的根类别名称和子类别名称。
 SELECT *
 FROM sort INNER JOIN subsort ON sort.Sort_ID = subsort.Sort_ID;
-select count(*) from subsort join sort on sort.Sort_ID = subsort.Sort_ID;
+
+select count(*)
+from subsort join sort on sort.Sort_ID = subsort.Sort_ID;
 
 SELECT Sort_name, SubSort_name
 FROM sort CROSS JOIN subsort ON sort.Sort_ID = subsort.Sort_ID;
@@ -65,8 +67,8 @@ UNION
 SELECT *
 FROM sort LEFT JOIN subsort ON sort.Sort_ID = subsort.Sort_ID;
 
--- `UNION`, `UNION ALL`都可以实现查询结构的并操作，不同之处在于`UNION`严格执行了集合并的概念，即剔除重复行；
--- `UNION ALL`不剔除重复行，保留两个表中的所有数据，例如：
+/*`UNION`, `UNION ALL`都可以实现查询结构的并操作，不同之处在于`UNION`严格执行了集合并的概念，即剔除重复行；
+`UNION ALL`不剔除重复行，保留两个表中的所有数据，例如：*/
 SELECT * FROM SORT 
 UNION 
 SELECT * FROM SORT; -- 去重
@@ -77,7 +79,7 @@ SELECT * FROM SORT;  -- 不去重
 
 select a.sort_id, count(*)
 from (SELECT * FROM SORT 
-	UNION 
+	UNION ALL
 	SELECT * FROM SORT) a
 group by a.sort_id
 order by a.sort_id;
@@ -89,9 +91,12 @@ SELECT Sort_name, Subsort_ID, SubSort_name
 FROM sort INNER JOIN subsort ON sort.Sort_ID = subsort.Sort_ID
 WHERE sort_name LIKE '%文件%' ORDER BY Subsort_ID DESC;
 
+SELECT Sort_name, Subsort_ID, SubSort_name
+FROM sort INNER JOIN subsort ON sort.Sort_ID = subsort.Sort_ID AND Sort_name LIKE '%文件%'
+ORDER BY Subsort_ID DESC;
+
 SELECT a.sort_name, COUNT(b.subsort_id)
-FROM sort a JOIN subsort b ON a.sort_id = b.sort_id
-WHERE sort_name LIKE '%用品%'
+FROM sort a JOIN subsort b ON a.sort_id = b.sort_id AND Sort_name LIKE '%用品%'
 GROUP BY a.sort_name
 HAVING COUNT(b.subsort_id) > 5
 ORDER BY COUNT(b.subsort_id) DESC
@@ -102,6 +107,33 @@ SELECT Sort_name, Subsort_ID, SubSort_name
 FROM sort, subsort
 WHERE sort.Sort_ID = subsort.Sort_ID AND sort_name LIKE '%文件%'
 ORDER BY Subsort_ID DESC;
+
+
+/*注意，条件定义在`ON`和`WHERE`子句中的区别：对内连接查询，两者无差异；对外连接查询，
+
+- `ON`定义的条件对被驱动表的数据进行筛选，但不对驱动表的数据进行筛选
+- `WHERE`则对驱动和被驱动表的数据同时刷选
+*/
+
+-- 内连接：执行结果相同
+SELECT product_id, product_name, sort.sort_id, sort_name
+FROM product JOIN sort ON product.sort_id = sort.sort_id
+WHERE sort.sort_id >= 92
+ORDER BY cast(product_id as unsigned) desc;
+
+SELECT product_id, product_name, sort.sort_id, sort_name
+FROM product JOIN sort ON (product.sort_id = sort.sort_id AND sort.sort_id >= 92)
+ORDER BY cast(product_id as unsigned) desc;
+
+-- 外连接：执行结果不同
+SELECT product_id, product_name, product.Sort_ID, sort.sort_id, sort_name
+FROM product LEFT JOIN sort ON product.sort_id = sort.sort_id
+WHERE sort.sort_id >= 92
+ORDER BY cast(product_id as unsigned) desc;  -- 表product中的部分数据未保留
+
+SELECT product_id, product_name, product.Sort_ID, sort.sort_id, sort_name
+FROM product LEFT JOIN sort ON (product.sort_id = sort.sort_id AND sort.sort_id >= 92)
+ORDER BY cast(product_id as unsigned) desc; -- 表product中的所有数据保留
 
 -- 补充1：自然连接--寻找量表中相同的字段进行等值连接，去除重复字段
 /* 语法:
@@ -140,13 +172,78 @@ SELECT count(*)
 FROM product join sort join subsort
 WHERE product.sort_id=sort.sort_id and sort.sort_id=subsort.sort_id;
 
--- 思考：如何实现减和交操作
+-- 5. 子查询
+-- 示例12：使用IN关键字, 查询子类别名“闹钟”对应的根类别信息。
+SELECT *
+FROM sort
+WHERE Sort_ID IN ( SELECT Sort_ID
+                    FROM subsort
+                    WHERE SubSort_name='闹钟');
+-- 等价于
+SELECT sort.Sort_ID, sort.Sort_name
+FROM sort JOIN subsort ON sort.Sort_ID = subsort.Sort_ID
+WHERE subsort.SubSort_name = '闹钟';
+
+-- 示例13：使用EXISTS关键字，查询subsort表的sort_id（不）属于sort的所有记录。
+SELECT EXISTS (SELECT Sort_ID
+                FROM subsort
+                WHERE SubSort_ID=3101);
+
+INSERT INTO subsort
+SET subsort_id = 9601, SubSort_name='示例子类别', Sort_ID=96;
+
+SELECT *
+FROM subsort
+WHERE NOT EXISTS (SELECT *
+                FROM sort
+                WHERE subsort.sort_id=sort.sort_id);
+
+-- 等价于
+SELECT l.*
+FROM subsort l LEFT JOIN sort r on l.Sort_ID = r.sort_id
+WHERE r.sort_id is null;
+
+
+-- 示例14：使用带ANY关键字的子查询，查询满足以下条件的产地名称：对应单价大于产地为大连的任一产品价格。
+SELECT distinct Product_Place
+FROM product
+WHERE price > ANY (SELECT price
+                    FROM product
+                    WHERE Product_Place = '大连');
+-- 等价于
+SELECT distinct Product_Place
+FROM product
+WHERE price > (SELECT MIN(price)
+                FROM product
+                WHERE Product_Place = '大连');
+
+-- 示例15：使用带ALL关键字的子查询，查询满足以下条件的产地名称：对应单价大于产地为大连的所有产品价格。
+SELECT distinct Product_Place
+FROM product
+WHERE price > ALL (SELECT price
+                    FROM product
+                    WHERE Product_Place = '大连');
+-- 等价于
+SELECT distinct Product_Place
+FROM product
+WHERE price > (SELECT MAX(price)
+                FROM product
+                WHERE Product_Place = '大连');
+
+
+/*思考：如何实现减和交操作
+假定:
+- 表`T_A`由`product`表中`sort_id=11`的`product_id, product_name, price`的行构成
+- 表`T_B`由`product`表中`price大于1000`的`product_id, product_name, price`的行构成*/
 
 CREATE TABLE t_a AS
 SELECT product_id, product_name, price FROM product WHERE sort_id = 11;
 
 CREATE TABLE t_b AS
 SELECT product_id, product_name, price FROM product WHERE price > 1000;
+
+select * from t_a;
+select * from t_b;
 
 -- 交
 SELECT *
@@ -182,7 +279,7 @@ FROM t_a AS o
 WHERE NOT EXISTS(SELECT product_id
 	FROM t_b
 	WHERE product_id= o.product_id AND product_name=o.product_name AND price=o.price);
-    
+
 --
 select product_id, product_name, price
 from product
@@ -192,57 +289,8 @@ select product_id, product_name, price
 from product
 where sort_id = 11 and price <= 1000;
 
--- 5. 子查询
--- 示例12：使用IN关键字, 查询子类别名“闹钟”对应的根类别信息。
-SELECT *
-FROM sort
-WHERE Sort_ID IN ( SELECT Sort_ID
-                    FROM subsort
-                    WHERE SubSort_name='闹钟');
--- 等价于
-SELECT sort.Sort_ID, sort.Sort_name
-FROM sort JOIN subsort ON sort.Sort_ID = subsort.Sort_ID
-WHERE subsort.SubSort_name = '闹钟';
-
--- 示例13：使用EXISTS关键字，如果存在子类别编号为3101，则查询类别表中所有的记录。
-SELECT *
-FROM sort
-WHERE EXISTS (SELECT Sort_ID
-                FROM subsort
-                WHERE SubSort_ID=3101);
-
-SELECT EXISTS(SELECT Sort_ID
-                FROM subsort
-                WHERE SubSort_ID=311101);
-
--- 示例14：使用带ANY关键字的子查询，查询满足以下条件的产地名称：对应单价大于产地为大连的任一产品价格。
-SELECT distinct Product_Place
-FROM product
-WHERE price > ANY (SELECT price
-                    FROM product
-                    WHERE Product_Place = '大连');
--- 等价于
-SELECT distinct Product_Place
-FROM product
-WHERE price > (SELECT MIN(price)
-                FROM product
-                WHERE Product_Place = '大连');
-
--- 示例15：使用带ALL关键字的子查询，查询满足以下条件的产地名称：对应单价大于产地为大连的所有产品价格。
-SELECT distinct Product_Place
-FROM product
-WHERE price > ALL (SELECT price
-                    FROM product
-                    WHERE Product_Place = '大连');
--- 等价于
-SELECT distinct Product_Place
-FROM product
-WHERE price > (SELECT MAX(price)
-                FROM product
-                WHERE Product_Place = '大连');
-
 -- 练习1
--- （2）使用内连接，查询product表和orders表中的订单号、订单时间、商品名称和商品数量。
+-- （1）使用内连接，查询product表和orders表中的订单号、订单时间、商品名称和商品数量。
 SELECT product.Product_ID, Order_ID, Order_date, Product_Name, Quantity
 FROM product INNER JOIN orders ON product.Product_ID = orders.Product_ID;
 -- 等价于
@@ -254,22 +302,22 @@ SELECT b.Order_ID, b.Order_date, a.Product_Name, b.Quantity
 FROM product a, orders b
 WHERE a.Product_ID = b.Product_ID;
 
--- （3）在product表和orders表之间使用左连接查询商品id、商品名称、订单号、订单时间和订单数量。
+-- （2）在product表和orders表之间使用左连接查询商品id、商品名称、订单号、订单时间和订单数量。
 SELECT a.Product_ID, a.Product_Name, b.Order_ID, b.Order_date, b.Quantity
 FROM product a LEFT JOIN orders b ON a.Product_ID=b.Product_ID;
 
--- （4）在product表和orders表之间使用右连接查询商品id、商品名称、订单号、订单时间和订单数量。
+-- （3）在product表和orders表之间使用右连接查询商品id、商品名称、订单号、订单时间和订单数量。
 SELECT a.Product_ID, a.Product_Name, b.Order_ID, b.Order_date, b.Quantity
 FROM product a RIGHT JOIN orders b ON a.Product_ID=b.Product_ID;
 
--- （5）在member表和orders表之间使用内连接查询订单号、订单时间、商品名id、商品数量和客户真实姓名，并按订单时间降序排列。
+-- （4）在member表和orders表之间使用内连接查询订单号、订单时间、商品名id、商品数量和客户真实姓名，并按订单时间降序排列。
 SELECT a.Order_ID, a.Order_date, a.Product_ID, a.Quantity, b.True_name
 FROM orders a JOIN member b ON a.User_name = b.User_name
 ORDER BY a.Order_date;
 
 -- 练习2
 
--- （1）使用IN关键字查询商品产地为“广东”的商品订单信息。
+-- （5）使用IN关键字查询商品产地为“广东”的商品订单信息。
 SELECT *
 FROM orders
 WHERE Product_ID IN (SELECT Product_ID FROM product
@@ -279,19 +327,19 @@ SELECT orders.*
 FROM orders JOIN product on orders.Product_ID = product.Product_ID
 WHERE product.Product_Place = '广东';
 
--- （2）使用EXISTS关键字查询是否存在产地为“上海” 的商品订单信息，如果存在，查询所有订单信息。
+-- （6）使用EXISTS关键字查询是否存在产地为“上海” 的商品订单信息，如果存在，查询所有订单信息。
 SELECT *
 FROM orders
 WHERE EXISTS (SELECT *
             FROM product JOIN orders ON product.Product_ID = orders.Product_ID
             WHERE product.Product_Place = '上海');
 
--- （3）使用`ANY`查询商品价格大于任一`sort_id`为11的商品价格的商品类别名称（使用`product`和`sort`）
+-- （7）使用`ANY`查询商品价格大于任一`sort_id`为11的商品价格的商品类别名称（使用`product`和`sort`）
 SELECT distinct sort_id, sort_name
 FROM product NATURAL JOIN sort
 WHERE price > ANY(SELECT price FROM product WHERE sort_id=11);
 
--- （4）使用带ALL关键字的子查询，查询订单信息，其中商品编号要大于所有产地为“珠海”的商品编号，并按商品编号升序排列。（使用order表和product表）
+-- （8）使用带ALL关键字的子查询，查询订单信息，其中商品编号要大于所有产地为“珠海”的商品编号，并按商品编号升序排列。（使用order表和product表）
 SELECT *
 FROM orders
 WHERE Product_ID > ALL (SELECT Product_ID
