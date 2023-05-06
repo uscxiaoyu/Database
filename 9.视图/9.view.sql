@@ -17,6 +17,7 @@ AS SELECT查询语句
 [WITH [CASCADE | LOCAL | CHECK OPTION] ];
 */
 
+show tables;
 -- 1.1 使用表中所有的字段
 -- 示例1: 创建视图view_product
 DROP VIEW VIEW_PRODUCT;
@@ -30,12 +31,15 @@ show tables;
 
 -- 查看视图view_product的前10条记录
 SELECT * 
-FROM view_product;
+FROM view_product
+ORDER BY cast(Product_ID as unsigned)
+limit 10;
 
 -- 1.2 查看视图结构
 
 -- 示例2：使用DESC[RIBE]查看视图view_product的结构
 DESC view_product;
+DESC product;
 
 -- 示例3: 使用SHOW CREATE VIEW | TABLE查看view_product的定义
 SHOW CREATE VIEW view_product;
@@ -44,28 +48,37 @@ SHOW CREATE VIEW view_product;
 -- 示例4：创建视图view_product2，包含product表中的product_id, product_name, product_place, subsort_id
 CREATE VIEW view_product2
 AS
-SELECT product_id, product_name, product_place, subsort_id FROM product;
+SELECT product_id, product_name, product_place, subsort_id
+FROM product;
 
-SELECT * FROM view_product2 LIMIT 10;
+SELECT *
+FROM view_product2
+ORDER BY cast(Product_ID as unsigned)
+LIMIT 10;
 
 -- 1.4 结合GROUP BY构建汇总视图
 -- 示例5：创建视图sum_product，包含product中product_place和各产地对应的产品数量
 CREATE VIEW sum_product
 AS
-SELECT product_place, count(product_id) FROM product GROUP BY product_place;
+SELECT product_place, count(product_id)
+FROM product
+GROUP BY product_place;
 
 desc sum_product;
 
-SELECT * FROM sum_product;
+SELECT *
+FROM sum_product;
 
-SELECT product_place, `count(product_id)` FROM sum_product; -- count(product_id)需要用反引号包括起来
+SELECT product_place, `count(product_id)`
+FROM sum_product; -- count(product_id)需要用反引号包括起来
 
 -- 1.5 在视图中重命名表中的字段
 
 -- 示例6: 创建视图sum_product，包含product中的product_place，各产地对应的产品数量，并命名为num_product
 CREATE VIEW sum_product2(product_place, num_product)
 AS
-SELECT product_place, count(product_id) FROM product GROUP BY product_place;
+SELECT product_place, count(product_id)
+FROM product GROUP BY product_place;
 
 desc sum_product2;
 
@@ -80,7 +93,8 @@ FROM product GROUP BY product_place;
 desc sum_product3;
 SHOW CREATE VIEW sum_product3;
 
-SELECT * FROM sum_product3;
+SELECT *
+FROM sum_product3;
 
 -- 1.6 查询视图
 /*视图和表一样，共用相同的查询语法:
@@ -96,7 +110,8 @@ FROM sum_product3;
 -- 等价于查看
 SELECT *
 FROM (SELECT product_place, count(product_id) AS num_product
-FROM product GROUP BY product_place) AS a;
+     FROM product
+     GROUP BY product_place) AS a; -- a 为衍生表
 
 -- 1.7 在多表上建立视图
 -- 示例8：创建视图view_sort_product，包含类别名称和对应的产品数量
@@ -106,7 +121,8 @@ SELECT sort.sort_name, COUNT(product.product_id) AS 产品种类
 FROM product JOIN sort ON product.sort_id = sort.sort_id
 GROUP BY sort.sort_name;
 
-SELECT * FROM view_sort_product;
+SELECT *
+FROM view_sort_product;
 
 -- 二、修改(重新定义)视图结构
 -- 2.1 利用CREATE OR REPLACE VIEW重新定义视图
@@ -133,6 +149,10 @@ AS
 SELECT product_id, product_name, product_place
 FROM product;
 
+SELECT *
+FROM view_product
+ORDER BY CAST(Product_ID AS unsigned);
+
 -- 三、通过视图操作基本表的记录
 -- 3.1 更新 UPDATE
 -- 示例11：通过view_product把product_place为'国产'的产品记录的对应值更改'国产'
@@ -144,27 +164,39 @@ UPDATE view_product
 SET product_place = '中国'
 WHERE product_place = '国产';
 
-SELECT * FROM view_product WHERE product_place='中国' LIMIT 10;
+SELECT *
+FROM view_product
+WHERE product_place='中国' LIMIT 10;
 
-SELECT * FROM product WHERE product_place='中国' LIMIT 10;
+SELECT *
+FROM product
+WHERE product_place='中国' LIMIT 10;
 
 -- 3.2 插入 INSERT
 -- 示例12：通过view_product插入一条product_id = '12345', product_name='3d打印机', product_place='上海'
 INSERT INTO view_product(product_id, product_name, product_place)
 VALUES ('12345', '3d打印机', '上海');
 
-SELECT * FROM view_product WHERE product_name='3d打印机';
+SELECT *
+FROM view_product
+WHERE product_name='3d打印机';
 
-SELECT * FROM product WHERE product_name='3d打印机';
+SELECT *
+FROM product
+WHERE product_name='3d打印机';
 
 -- 3.3 删除 DELETE
 -- 示例13：通过view_product删除product_name为'3d打印机'的记录
 DELETE FROM view_product
 WHERE product_name = '3d打印机';
 
-SELECT * FROM view_product WHERE product_name='3d打印机';
+SELECT *
+FROM view_product
+WHERE product_name='3d打印机';
 
-SELECT product_id, product_name, product_place FROM product WHERE product_name='3d打印机';
+SELECT product_id, product_name, product_place
+FROM product
+WHERE product_name='3d打印机';
 
 /*注意：
 当视图包含以下结构时，更新操作不能执行：
@@ -190,7 +222,9 @@ SELECT * FROM product
 WHERE sort_id = 11;
 
 -- 则对其查询会发生对应定义的替换。如果我们要在该视图上查询价格大于1000的产品，即
-SELECT * FROM view_product;
+SELECT *
+FROM view_product
+WHERE Price > 1000;
 
 -- 以上语句被替换为
 SELECT * 
@@ -201,14 +235,24 @@ WHERE sort_id = 11 AND price > 1000;
 SELECT *
 FROM (SELECT * 
      FROM view_product) a
-WHERE price > 1000;
+WHERE price > 1000;  -- a 为衍生表，存在内存中
 
 
 -- 补充2
 -- with check option v.s. without check option
-show variables like "%auto%";
+show variables like "%auto%";  -- 事务自动提交选项，可控制是否将
 set autocommit=0;
-delete from product where product_id > 6000;
+
+select *
+from product
+where Product_ID > 6000;
+
+start transaction;
+
+delete from product
+where product_id > 6000;
+
+rollback; -- 回滚到事务开始前的数据库状态，即删除product_id > 6000 的记录前
 
 create or replace view view_product
 as
@@ -233,21 +277,23 @@ values (9999, 12); -- 执行不成功
 rollback;
 
 -- local v.s cascaded
+-- 基于基本表product构建视图view_product
 create or replace view view_product
 as
 select * from product where sort_id = 11;
-
+-- 基于视图view_product创建视图view_view_product, local check会检查当前视图中的条件
 create or replace view view_view_product
 as
 select * from view_product where price > 1000
 with local check option;
 
 start transaction;
+
 insert into view_view_product(product_id, price, sort_id)
 values (9999, 2000, 12); -- 执行成功：虽然违背view_product的where条件sort_id = 11
 
 insert into view_view_product(product_id, price, sort_id)
-values (9999, 200, 11); -- 插入失败：price < 1000，不满足view_view_product的lock check
+values (9998, 200, 11); -- 插入失败：price < 1000，不满足view_view_product的lock check
 
 select * from product where product_id = 9999; -- 有结果
 select * from view_product where product_id = 9999; -- 无结果
@@ -255,10 +301,12 @@ select * from view_view_product where product_id = 9999;  -- 无结果
 
 rollback;
 
+--
 create or replace view view_product
 as
 select * from product where sort_id = 11;
 
+-- 设置cascade check option
 create or replace view view_view_product
 as
 select * from view_product where price > 1000
