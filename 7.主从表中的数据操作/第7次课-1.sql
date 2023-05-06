@@ -13,8 +13,9 @@ ALTER TABLE 表名 ADD CONSTRAINT [外键名] FOREIGN KEY(外键字段名) REFER
 CREATE DATABASE temp;
 USE temp;
 
+drop table grade;
 CREATE TABLE grade(
-    id INT PRIMARY KEY,
+    id INT primary key ,
     gname VARCHAR(20) NOT NULL
 );
 
@@ -76,8 +77,12 @@ where sort_id not in (select sort_id from sort);
 insert into sort
 set sort_id=95, Sort_name='xx';
 
+select * from sort order by sort_id desc ;
+
 alter table product 
 add constraint fk_sortid1 foreign key (sort_id) references sort(sort_id);
+
+show create table product;
 
 -- (3) 构建`subsort`表与`sort`表之间的外键约束`fk_sortid2`，外键为`subsort_id`，并设置为`on delete cascade`。
 select SubSort_ID, sort_id
@@ -105,6 +110,7 @@ WHERE subsort_id = 9501;  -- 删除对应记录
 alter table product 
 add constraint fk_subsortid foreign key (subsort_id) references subsort(subsort_id);
 
+show create table subsort;
 -- 2. 操作关联表
 
 -- 课堂示例3：使用关联关系查询数据-查询根类别为“办公机器设备”的产品

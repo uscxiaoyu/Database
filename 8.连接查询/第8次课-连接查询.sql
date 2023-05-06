@@ -79,7 +79,7 @@ SELECT * FROM SORT;  -- 不去重
 
 select a.sort_id, count(*)
 from (SELECT * FROM SORT 
-	UNION ALL
+	UNION
 	SELECT * FROM SORT) a
 group by a.sort_id
 order by a.sort_id;
@@ -135,6 +135,11 @@ SELECT product_id, product_name, product.Sort_ID, sort.sort_id, sort_name
 FROM product LEFT JOIN sort ON (product.sort_id = sort.sort_id AND sort.sort_id >= 92)
 ORDER BY cast(product_id as unsigned) desc; -- 表product中的所有数据保留
 
+SELECT product_id, product_name, product.Sort_ID, a.sort_id, sort_name
+FROM product LEFT JOIN (select * from sort where sort_id >= 92) a
+    ON product.sort_id = a.sort_id
+ORDER BY cast(product_id as unsigned) desc; -- 表product中的所有数据保留
+
 -- 补充1：自然连接--寻找量表中相同的字段进行等值连接，去除重复字段
 /* 语法:
 SELECT 字段列表 FROM 表1 natural join 表2
@@ -174,6 +179,10 @@ WHERE product.sort_id=sort.sort_id and sort.sort_id=subsort.sort_id;
 
 -- 5. 子查询
 -- 示例12：使用IN关键字, 查询子类别名“闹钟”对应的根类别信息。
+select *
+from product
+where sort_id not in (select sort_id from sort);
+
 SELECT *
 FROM sort
 WHERE Sort_ID IN ( SELECT Sort_ID
@@ -187,7 +196,7 @@ WHERE subsort.SubSort_name = '闹钟';
 -- 示例13：使用EXISTS关键字，查询subsort表的sort_id（不）属于sort的所有记录。
 SELECT EXISTS (SELECT Sort_ID
                 FROM subsort
-                WHERE SubSort_ID=3101);
+                WHERE SubSort_ID=101);
 
 INSERT INTO subsort
 SET subsort_id = 9601, SubSort_name='示例子类别', Sort_ID=96;
