@@ -137,7 +137,7 @@ end;
 $$
 delimiter ;
 
-select f(5);
+select f(5), f(-5);
 
 -- 示例7: 创建函数change_price_fn,输入产品编号product_id，根据sort_id的值计算并返回返利: sort_id为11的产品返利为价格的10%， sort_id为21的产品的产品返利为价格的30%，
 -- sort_id为31的产品返利为价格的40%, 其它返回为5%。
@@ -215,7 +215,7 @@ limit 10;
 循环体;
 end while [循环标签];
 */
-
+use purchase;
 -- 示例9：创建函数get_sum_fn，返回整数1到n的累加和
 drop function if exists get_sum_fn;
 
@@ -234,7 +234,7 @@ end;
 $$
 delimiter ;
 
-select get_sum_fn(100);
+select get_sum_fn(100), get_sum_fn(1000);
 
 -- 2.2 leave
 /* 用于跳出当前的循化语句。语法：
@@ -249,11 +249,11 @@ begin
 	declare accum_sum int default 0;
   	declare start_num int default 0;
   	add_num : while true do
-	set start_num = start_num + 1;
-  	set accum_sum = start_num + accum_sum;
-  	if (start_num = n) then
+		set start_num = start_num + 1;
+		set accum_sum = start_num + accum_sum;
+		if (start_num = n) then
 			leave add_num;
-	end if;
+		end if;
 	end while add_num;
 	return accum_sum;
 end;
@@ -277,10 +277,10 @@ begin
   	add_num : while true do
 	set start_num = start_num + 1;
     if start_num <= n then
-			if (start_num % 3) != 0 then
-				iterate add_num;
-			end if;
-			set accum_sum = accum_sum + start_num;
+		if (start_num % 3) != 0 then
+			iterate add_num;
+		end if;
+		set accum_sum = accum_sum + start_num;
 	else 
 		leave add_num;
     end if;
@@ -310,7 +310,7 @@ begin
 	declare start_num int default 0;
 	repeat
 		set start_num = start_num + 1;
-    set accum_sum = start_num + accum_sum;
+		set accum_sum = start_num + accum_sum;
 	until (start_num = n) end repeat;
   	return accum_sum;
 end;
@@ -333,16 +333,18 @@ end loop;
 */
 
 -- 示例13：基于loop，实现从1加到n
+drop function if exists get_sum_fn5;
+
 delimiter $$
 create function get_sum_fn5 (n int) returns int
 no sql
 begin
 	declare accum_sum int default 0;
 	declare start_num int default 0;
-	add_sum : loop
+	add_sum: loop
 		set start_num = start_num + 1;
-    set accum_sum = start_num + accum_sum;
-    if start_num = n then
+		set accum_sum = start_num + accum_sum;
+		if start_num = n then
 			leave add_sum;
 		end if;
 	end loop;
@@ -444,6 +446,7 @@ select order_id, cal_due_fn(order_id) 应付款 from `orders` order by 应付款
 -- 练习3：
 -- 选用一种循环结构，编写函数get_prod_fn，实现从m到n的累乘
 -- loop
+use purchase;
 drop function if exists get_prod_fn1;
 
 delimiter $$
@@ -464,7 +467,7 @@ end;
 $$
 delimiter ;
 
-select get_prod_fn1(10, 12);
+select get_prod_fn1(10, 15);
 
 -- repeat
 delimiter $$

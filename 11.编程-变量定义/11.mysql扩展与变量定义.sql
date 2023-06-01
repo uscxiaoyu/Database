@@ -118,6 +118,7 @@ select @@character_set_database;
 -- 2.1 用户会话变量
 -- 方法1：set
 set @user_name = '张三'; -- 变量数据类型由等号右边表达式的计算结果决定
+set @user_name := '张';
 select @user_name;
 
 set @user_name = b'11', @age = 18;  -- 同时定义多个变量
@@ -176,13 +177,22 @@ select @product_count4 as 产品数量;
 select count(*) from Product into @product_count5;
 select @product_count5 as 产品数量;
 
+/*
+注意into和:=的区别
+*/
+select @a:=sort_id from product;  -- 成功，每返回一行，给@a赋值一次
+select @a:= (select sort_id from product);  -- 失败，返回多行
+
+select sort_id into @a from product;  -- 失败
+select sort_id from product into @a;  -- 失败
+
 -- 课堂示例4: 通过定义用户变量查询product表中的特定行
 set @product_code = '1101001';
 select * from Product where product_code = @product_code;
 
 select * from Product where product_code = '1101001';
 
--- 示例16：通过自定义变量查询sort_name为纸张的所有产品信息
+-- 示例5：通过自定义变量查询sort_name为纸张的所有产品信息
 select * from sort;
 select sort_id into @v_sortid from sort where sort_name = '纸张' limit 1;
 select * from product where sort_id = @v_sortid;
@@ -193,10 +203,17 @@ where sort_name = '纸张';
 -- 示例6：从`product`表所有记录奇数行构成的集合。
 SELECT row_num, product_id, product_name, price
 FROM (SELECT @row_num := @row_num + 1 AS row_num, product_id, product_name, price
-	FROM product, (SELECT @row_num := 0) AS r) AS b_product
+	FROM product, (SELECT @row_num := 0) AS r order by product_id desc) AS b_product
 WHERE row_num mod 2 != 0;
 
 SELECT @row_num := @row_num + 1 AS row_num, product_id, product_name, price
+FROM product, (SELECT @row_num := 0) AS r
+order by price desc;
+
+SELECT *
+from product, (select @row_num := 0) r;
+
+select *
 FROM product, (SELECT @row_num := 0) AS r;
 
 select * from product where product_id is null;
@@ -211,6 +228,45 @@ SELECT @row_num := 0;
 select @row_num := @row_num + 1;
 
 select @row_num;
+
+/*查询各sort_id下产品类别数量排名前5的subsort_id，
+返回sort_id, subsort_id, 产品数量, 类别内排名*/
+select sort_id, subsort_id, num_product, 排名
+from (select sort_id, subsort_id, num_product, 
+            if(sort_id = @last_sort_id, 
+               if(num_product = @last_num_product, @r, @r := @r+1), 
+               @r := 1) 排名,
+            @last_sort_id := sort_id,
+            @last_num_product := num_product
+      from (select sort_id, subsort_id, count(*) num_product
+            from product
+            group by subsort_id
+            order by sort_id, num_product desc) x, (select @r:=null, @last_sort_id:=null, @last_num_product:=null) r) a
+where 排名 <= 5; # @last_sort_id和@last_num_product分别上一行记录值，有些数量的相同的排名应该相同
+
+-- 另一种思路
+-- step 1
+select a.sort_id, b.subsort_id, count(*) num_product
+from sort a left join subsort b on a.sort_id=b.sort_id left join product c on b.subsort_id=c.SubSort_ID
+group by c.SubSort_ID
+order by sort_id, num_product desc;
+
+-- step 2
+select if(@vsortid=sort_id, @row_num:=@row_num + 1, @row_num:=1) rank, @vsortid := sort_id, u.*
+from (select a.sort_id, b.subsort_id, count(*) num_product
+	from sort a left join subsort b on a.sort_id=b.sort_id left join product c on b.subsort_id=c.SubSort_ID
+	group by c.SubSort_ID
+	order by sort_id, num_product desc) u, (select @vsortid:=null, @row_num:=null) v;
+
+-- step 3
+select sort_id, subsort_id, num_product, rank
+from    
+(select if(@vsortid=sort_id, @row_num:=@row_num + 1, @row_num:=1) rank, @vsortid := sort_id, u.*
+	from (select a.sort_id, b.subsort_id, count(*) num_product
+		from sort a left join subsort b on a.sort_id=b.sort_id left join product c on b.subsort_id=c.SubSort_ID
+		group by c.SubSort_ID
+		order by sort_id, num_product desc) u, (select @vsortid:=null, @row_num:=null) v) x
+where rank <=5;
 
 -- 3. 运算符
 

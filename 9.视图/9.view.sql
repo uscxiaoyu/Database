@@ -21,6 +21,7 @@ show tables;
 -- 1.1 使用表中所有的字段
 -- 示例1: 创建视图view_product
 DROP VIEW VIEW_PRODUCT;
+
 CREATE VIEW view_product
 AS
 SELECT * 
@@ -66,7 +67,7 @@ GROUP BY product_place;
 
 desc sum_product;
 
-SELECT *
+SELECT product_place, `count(product_id)`
 FROM sum_product;
 
 SELECT product_place, `count(product_id)`
@@ -127,7 +128,7 @@ FROM view_sort_product;
 -- 二、修改(重新定义)视图结构
 -- 2.1 利用CREATE OR REPLACE VIEW重新定义视图
 -- 示例9：重新定义视图view_product，包含product_id, product_name, product_place, sort_id, subsort_id
-CREATE OR REPLACE VIEW view_product3
+CREATE OR REPLACE VIEW view_product4
 AS
 SELECT product_id, product_name, product_place, sort_id, subsort_id
 FROM product;
@@ -252,6 +253,7 @@ start transaction;
 delete from product
 where product_id > 6000;
 
+commit ;
 rollback; -- 回滚到事务开始前的数据库状态，即删除product_id > 6000 的记录前
 
 create or replace view view_product
@@ -317,22 +319,20 @@ insert into view_view_product(product_id, price, sort_id)
 values (9999, 10000, 12); -- 执行不成功，cascade选项级联检查view_product的条件
 rollback;
 
-
-
--- 练习1
+-- 课堂练习
 -- (1) 创建view_member视图, 包含member表中的user_name, sex, email等字段
 CREATE VIEW view_member
 AS
 SELECT user_name, sex, email
 FROM member;
 
--- (2) 利用DESC查看view_member的结构
+-- 利用DESC查看view_member的结构
 DESC view_member;
 
--- (3) 利用SHOW CRAETE VIEW查看view_member的定义
+-- 利用SHOW CRAETE VIEW查看view_member的定义
 SHOW CREATE VIEW view_member;
 
--- (4) 创建view_sort视图，包含sort表中的sort_name， 以及其对应的子类别的数量，并命名为num_subsort
+-- (2) 创建view_sort视图，包含sort表中的sort_name， 以及其对应的子类别的数量，并命名为num_subsort
 CREATE VIEW view_sort
 AS
 SELECT sort.sort_name, count(subsort.subsort_id) AS num_subsort
@@ -346,28 +346,24 @@ SELECT sort.sort_name, count(subsort.subsort_id) AS num_subsort
 FROM sort JOIN subsort ON sort.sort_id = subsort.sort_id
 GROUP BY sort.sort_name;
 
-
--- (5) 在view_sort视图查询类别名称中有'办公'两个字的所有记录
+-- (3) 在view_sort视图查询类别名称中有'办公'两个字的所有记录
 SELECT *
 FROM view_sort
 WHERE sort_name LIKE '%办公%';
 
-
--- 练习2
-
--- (1) 利用CREATE OR REPLACE VIEW创建view_member视图, 包含member表中的user_name, sex, email等字段
+-- (4) 利用CREATE OR REPLACE VIEW创建view_member视图, 包含member表中的user_name, sex, email等字段
 CREATE OR REPLACE VIEW view_member
 AS
 SELECT user_name, sex, email
 FROM member;
 
--- (2) 利用ALTER VIEW修改视图view_member，使其包含member表中的user_name, sex, email, address, phone等字段
+-- 利用ALTER VIEW修改视图view_member，使其包含member表中的user_name, sex, email, address, phone等字段
 ALTER VIEW view_member
 AS
 SELECT user_name, true_name, sex, email, address, phone
 FROM member;
 
--- (3) 通过view_memeber更新user_name为'饿狼'的记录的true_name为'Mandy'
+-- (5) 通过view_memeber更新user_name为'饿狼'的记录的true_name为'Mandy'
 SELECT * FROM view_member WHERE user_name = '饿狼';
 
 UPDATE view_member
@@ -377,16 +373,16 @@ WHERE user_name = '饿狼';
 SELECT * FROM view_member WHERE user_name = '饿狼';
 SELECT * FROM member WHERE user_name = '饿狼';
 
--- (4) 通过view_memeber插入一条记录，user_name为'风清扬', true_name为'张三丰', sex为'女'
+-- (6) 通过view_memeber插入一条记录，user_name为'风清扬', true_name为'张三丰', sex为'女'
 INSERT INTO view_member(user_name, true_name, sex)
 VALUES ('风清扬', '张三丰', '女');
 
 SELECT * FROM view_member WHERE user_name = '风清扬';
 SELECT * FROM member WHERE user_name = '风清扬';
 
--- (5) 通过view_memeber删除user_name为'风清扬'的记录
+-- (7) 通过view_memeber删除user_name为'风清扬'的记录
 DELETE FROM view_member
 WHERE user_name = '风清扬';
 
--- (6) 删除视图view_memeber
+-- (8) 删除视图view_memeber
 DROP VIEW IF EXISTS view_member;
