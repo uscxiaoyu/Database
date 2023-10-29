@@ -10,6 +10,9 @@ SELECT * FROM 表1, 表2;
 
 */
 
+select count(*) from sort;
+select count(*) from subsort;
+
 -- 示例1：使用交叉连接，查询根类别表（sort表）和子类别表（subsort表）的所有数据.
 SELECT * FROM sort CROSS JOIN subsort limit 35;
 SELECT * FROM sort, subsort LIMIT 35;
@@ -50,10 +53,12 @@ SELECT 所查字段 FROM 表1 LEFT|RIGHT [OUTER] JOIN 表2
 ON 表1.关系字段 = 表2.关系字段 WHERE 条件
 */
 
+insert into sort
+values (98, '其它');
 -- 示例4：在sort表和subsort表之间使用左连接查询
 SELECT *
 FROM sort LEFT JOIN subsort ON sort.Sort_ID = subsort.Sort_ID 
-ORDER BY SubSort_name;
+ORDER BY sort.sort_id;
 
 -- 示例5：在sort表和subsort表之间使用右连接查询
 SELECT *
@@ -146,6 +151,8 @@ SELECT 字段列表 FROM 表1 natural join 表2
 */
 
 -- 示例8：对表`sort`和`subsort`进行自然连接(剔除重复列)
+select * from sort, subsort limit 5;
+
 SELECT * FROM sort natural join subsort limit 5;
 
 SELECT *
@@ -183,6 +190,8 @@ select *
 from product
 where sort_id not in (select sort_id from sort);
 
+select * from sort;
+
 SELECT *
 FROM sort
 WHERE Sort_ID IN ( SELECT Sort_ID
@@ -196,7 +205,10 @@ WHERE subsort.SubSort_name = '闹钟';
 -- 示例13：使用EXISTS关键字，查询subsort表的sort_id（不）属于sort的所有记录。
 SELECT EXISTS (SELECT Sort_ID
                 FROM subsort
-                WHERE SubSort_ID=101);
+                WHERE SubSort_ID=1101);
+
+select *
+from subsort;
 
 INSERT INTO subsort
 SET subsort_id = 9601, SubSort_name='示例子类别', Sort_ID=96;

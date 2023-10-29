@@ -1,10 +1,16 @@
 -- 第三次课。请务必先导入上次课的stu_info和purchase数据库。
+use stu_info;
+drop table if exists student;
+CREATE TABLE student(
+    id int,
+    name varchar(20),
+    grade float);
 
 -- 单字段主键：
--- 课堂示例13--将数据表grade中id字段设置为主键。
+-- 课堂示例13--将数据表student中id字段设置为主键。
 use stu_info;
-alter table grade modify id int primary key;
-desc grade;
+alter table student modify id int primary key;
+desc student;
 
 
 -- 多字段主键：
@@ -16,26 +22,33 @@ desc example;
 
 -- 多字段主键：
 -- 课堂示例15--新建数据表course，创建stu_id、course_id和grade三个字段，其中stu_id和course_id设置为多字段主键。
-create table course (stu_id int,
-					 course_id int,
-                     grade float,
-                     primary key (stu_id, course_id));
-desc course;
+create table stu_course (stu_id int,
+                         course_id int,
+                         grade float,
+                         primary key (stu_id, course_id));
+
+desc stu_course;
 
 -- 非空约束： 
--- 课堂示例16--将grade表的username字段改为非空
-ALTER TABLE grade MODIFY username VARCHAR(20) NOT NULL;
-desc grade;
+-- 课堂示例16--将student表的name字段改为非空
+ALTER TABLE student change `name` `name` VARCHAR(20) NOT NULL;
+-- 或者
+ALTER TABLE student MODIFY `name` VARCHAR(20) NOT NULL;
+
+desc student;
 
 -- 唯一性约束：
--- 课堂示例17--将数据表grade中username字段设置唯一性约束。
-ALTER TABLE grade MODIFY username VARCHAR(20) UNIQUE;
-desc grade;
+-- 课堂示例17--将数据表student中name字段设置唯一性约束。
+show create table student;
+ALTER TABLE student MODIFY `name` VARCHAR(20) UNIQUE;
+-- ALTER TABLE student MODIFY `name` VARCHAR(20) NOT NULL UNIQUE;
+desc student;
 
 -- 默认值：
--- 课堂示例18：将数据表grade中grade字段设置默认约束值为0。
-ALTER TABLE grade MODIFY grade FLOAT DEFAULT 0;
-desc grade;
+-- 课堂示例18：将数据表student中grade字段设置默认约束值为0。
+ALTER TABLE student MODIFY grade FLOAT DEFAULT 0;
+desc student;
+
 
 
 -- 课堂练习
@@ -51,14 +64,33 @@ desc product;
 
 
 -- 主键的自增auto_increment
--- 课堂示例19：在数据表grade中id字段，设置为字段值自动增加。
+-- 课堂示例19：在数据表student中id字段，设置为字段值自动增加。
 use stu_info;
-alter table grade modify id int auto_increment;
-desc grade;
+alter table student modify id int auto_increment;
+desc student;
 
+
+-- foreign key
+USE stu_info;
+
+CREATE TABLE department(
+	deptid INT PRIMARY KEY,
+  	deptname VARCHAR(40) NOT NULL);
+
+CREATE TABLE student(
+    sid INT PRIMARY KEY,
+    sname VARCHAR(40),
+    deptid INT NOT NULL,
+    CONSTRAINT fk_deptid FOREIGN KEY (deptid) REFERENCES department(deptid));
+
+alter table student drop constraint fk_deptid;
+show create table student;
+
+desc student;
 
 -- 创建索引
 -- 课堂示例20：创建表的时候创建索引。
+drop table if exists student;
  CREATE TABLE student(stu_id int(10),
                       name varchar(20),
                       course varchar(50),
@@ -70,6 +102,8 @@ desc grade;
                       INDEX single_course(course(50)),         #创建单列索引
                       INDEX multi(stu_id, name(20))            #创建多列索引
                       );
+
+show create table student;
 
 -- 课堂示例21：创建book1。
 CREATE TABLE book1(bookid int NOT NULL,
@@ -92,6 +126,7 @@ desc book1;
 -- 课堂示例22：使用ALTER TABLE语句在已经存在表上创建索引。
 -- 先将数据表book1复制为book2表。
 CREATE TABLE book2 SELECT * FROM book1;
+show create table book2;
 
 -- 添加索引
 ALTER TABLE book2 ADD INDEX index_id(bookid);                   #创建普通索引

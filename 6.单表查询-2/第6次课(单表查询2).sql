@@ -48,7 +48,7 @@ ORDER BY product_place DESC, price ASC;
 DESC product;
 alter table product modify product_id varchar(25);
 
-select product_id from product limit 10;
+select product_id from product limit 20;
 
 SELECT product_id, product_name, product_place, price
 FROM product
@@ -56,7 +56,7 @@ ORDER BY product_id asc;
 
 SELECT product_id, product_name, product_place, price
 FROM product
-ORDER BY CAST(product_id AS UNSIGNED) DESC;  -- 将字符串转换为数值
+ORDER BY CAST(product_id AS UNSIGNED) asc;  -- 将字符串转换为数值
 
 /*
 CAST(字段名 AS 转换类型)函数可以将一个字段进行类型准换。
@@ -100,8 +100,7 @@ FROM product
 where product_place is not null
 GROUP BY product_place
 having 产品数量 >= 100
-order by 产品数量 desc
-limit 10;
+order by 产品数量 desc;
 
 -- 示例8：根据product表计算不同产地的商品单价最大值，按Product_place降序排列
 SELECT product_place, MAX(price)
@@ -109,11 +108,12 @@ FROM product
 GROUP BY product_place
 ORDER BY product_place DESC;
 
--- 示例9：根据product表计算不同产地的商品单价最大值，将单价最大值大于100元的产品的产地及单价最大值按Product_ID降序排列
+-- 示例9：示例9：根据`product`表计算不同产地的商品单价最大值，保留单价最大值大于100元的记录，并按照单价最大值降序排列。
 SELECT product_place, MAX(price)
 FROM product
 GROUP BY product_place 
-HAVING MAX(price) > 100;
+HAVING MAX(price) > 100
+ORDER BY MAX(price) DESC;
 
 -- 示例10：查询product表中（类别，子类别）对应的最大商品价格，返回sort_id, subsort_id和对应的最大价格
 SELECT sort_id, subsort_id, MAX(price)
@@ -127,7 +127,7 @@ limit 10;
 
 -- group_concat()函数：将某一分组中的某一字段对应的所有字符串连接起来，即返回分组中对应字段的所有值
 -- 示例11：查询各子类对应的product_name，用逗号连接起来
-SELECT subsort_id, group_concat(product_name ORDER BY length(product_name) ASC separator "~~~~")
+SELECT subsort_id, group_concat(product_name ORDER BY length(product_name) desc separator "---")
 FROM product 
 GROUP BY subsort_id;
 
@@ -177,7 +177,7 @@ SELECT DATE_FORMAT(NOW(),'%d %b %y'); -- y 2位年份
 SELECT DATE_FORMAT(NOW(),'%d %b %Y %T:%f'); -- T时间, 24-小时(hh:mm:ss)
 
 -- 示例15：条件判断
-SELECT IF(5<6, '对', '错');
+SELECT IF(5>6, '对', '错');
 SELECT IFNULL(null, '空值'), IFNULL(1, '空值');
 
 -- 让空值排在末尾

@@ -38,7 +38,7 @@ LIMIT m [,n];
 -- 示例4: 查询前10个product表中的商品记录
 SELECT *
 FROM product
-LIMIT 10;
+LIMIT 10, 10;
 
 -- 2. 按条件查询(where子句)
 
@@ -48,7 +48,7 @@ SELECT 字段名1, 字段名2, ...
 FROM 表名
 WHERE 条件表达式;
 
-常见的关系运算符号：=、<>、！=、<、<=、>、>=
+常见的关系运算符号：=、<>、!=、<、<=、>、>=
 */
 
 -- 示例5：查询product表中Product_Place为“天津”的产品信息
@@ -149,6 +149,9 @@ FROM 表名
 
 -- 示例13：查询product表中Product_Place字段的值，查询记录不能重复
 SELECT distinct product_place
+FROM product;
+
+SELECT product_place
 FROM product;
 
 -- DISTINCT关键字作用于多个字段：向量比较，只有DISTINCT关键字后指定的多个字段值都相同，才会被认作是重复记录。

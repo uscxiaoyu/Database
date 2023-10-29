@@ -1,9 +1,10 @@
 -- 创建表
 CREATE DATABASE stu_info;
 USE stu_info;
-CREATE TABLE tb_grade(id INT(11),
+CREATE TABLE `table`(id INT,
 					  name VARCHAR(20),
 					  grade FLOAT);
+drop table `table`;
 
 -- 查看表的创建
 SHOW CREATE TABLE tb_grade;
@@ -37,13 +38,13 @@ ALTER TABLE grade CHANGE `name` `username` VARCHAR(20);
 DESC grade;
 
 -- 修改字段属性
-ALTER TABLE grade MODIFY id INT(20);
+ALTER TABLE grade MODIFY id float;
 DESC grade;
 ALTER TABLE grade CHANGE COLUMN id id INT(30);
 DESC grade;
 
 -- 添加字段
-ALTER TABLE grade ADD age INT(3) AFTER username;
+ALTER TABLE grade ADD age INT AFTER username;
 DESC grade;
 
 -- 删除字段
@@ -57,7 +58,7 @@ DESC grade_bac;
 -- 字段排序
 ALTER TABLE grade_bac MODIFY username VARCHAR(20) FIRST;
 DESC grade_bac;
-ALTER TABLE grade_bac MODIFY id INT(20) AFTER grade;
+ALTER TABLE grade_bac MODIFY id INT AFTER grade;
 DESC grade_bac;
 
 -- 删除表

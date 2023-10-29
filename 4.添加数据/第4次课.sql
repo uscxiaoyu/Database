@@ -1,8 +1,8 @@
--- 创新示例数据库和表
-CREATE DATABASE stu_grade;
-USE stu_grade;
+-- 创建示例数据库和表
+CREATE DATABASE stu_info;
+USE stu_info;
 
-CREATE TABLE `student` (`id` INT(4) PRIMARY KEY,
+CREATE TABLE `student` (`id` INT PRIMARY KEY,
                         `name` VARCHAR(20) NOT NULL,
                         `grade` FLOAT);
 
@@ -15,18 +15,19 @@ SELECT * FROM student; -- 查看student表中的所有数据
 
 -- 课堂示例2：运用INSERT语句插入数据时，指定所有字段名，打乱顺序
 INSERT INTO student(`name`, `grade`, `id`)
-	VALUES('lisi', 95, 2);
+	VALUES('lisi', 95, 1);
     
 SELECT * FROM student;
 
 -- 课堂示例3：运用INSERT语句插入数据时，不指定字段名, 需严格按字段的顺序提供值
+desc student;
 INSERT INTO student
 	VALUES(3, 'wangwu', 61.5);
     
 SELECT * FROM student;
 
 INSERT INTO student
-	VALUES('wanqi', 4, 61.5); # 如果不按指定顺序，则可能发生插入错误
+	VALUES('wanqi', 4, 61.5); # 如果不按指定顺序给字段值，则可能发生插入错误
 
 -- 课堂示例4：运用INSERT语句插入数据时，向指定字段中添加值。
 INSERT INTO student(`id`, `name`)
@@ -61,23 +62,26 @@ INSERT INTO student (`id`,`name`) VALUES
             (10,'guanyu'), 
             (11,'zhangfei');
 
+select * from student;
+
 -- 课堂练习
 CREATE DATABASE purchase2;
 USE purchase2;
 DROP TABLE IF EXISTS product;
 CREATE TABLE `product` (
-  `Product_ID` char(10) PRIMARY KEY,
-  `Product_Name` varchar(100) UNIQUE,
-  `Product_Code` varchar(10) NOT NULL,
-  `Product_Place` varchar(50),
-  `Product_Date` date,
-  `Price` float DEFAULT 0,
-  `Unit` varchar(20),
-  `Detail` varchar(20),
-  `SubSort_ID` varchar(10) NOT NULL,
-  `Sort_ID` varchar(10) NOT NULL);
+    `Product_ID` char(10) PRIMARY KEY,
+    `Product_Name` varchar(100) UNIQUE,
+    `Product_Code` varchar(10) NOT NULL,
+    `Product_Place` varchar(50),
+    `Product_Date` date,
+    `Price` float DEFAULT 0,
+    `Unit` varchar(20),
+    `Detail` varchar(20),
+    `SubSort_ID` varchar(10) NOT NULL,
+    `Sort_ID` varchar(10) NOT NULL);
 
-INSERT INTO product(`product_id`, `product_name`, `product_code`, `product_place`, `product_date`, `price`, `unit`, `detail`, `subsort_id`, `sort_id`) VALUES
+INSERT INTO product(`product_id`, `product_name`, `product_code`, `product_place`, `product_date`, `price`, `unit`, `detail`, `subsort_id`, `sort_id`)
+VALUES
   (1035, '商务型U盘128M', 1314027, '上海', '2010-9-10', 325, '片', '1片*1盒', '1314', '13'),
   (1048, '索尼CD-RW刻录盘', 1314040, '上海', '2012-12-1', 15, '片', '1片*1盒', '1314', '13'),
   (1058, 'LG刻录机', 1314050, '惠州', '2015-3-9', 410, '台', '1*1', '1314', '13'),
@@ -88,7 +92,7 @@ SELECT * FROM product;
 
 -- 二、更新数据
 -- 课堂示例10：更新student表中id字段值为1的记录。将该记录的name字段的值更新为caocao，grade字段的值更新为50
-USE stu_grade;
+USE stu_info;
 
 SELECT * FROM student WHERE `id` = 1;
 
@@ -107,12 +111,16 @@ WHERE id < 4;
 
 SELECT * FROM student WHERE `id` < 4;
 
--- MySQL默认模式是安全更新模式，在该模式下，会导致非主键条件下无法执行更新。要把MySQL数据库设置为非安全更新模式 
+-- MySQL默认模式是安全更新模式，在该模式下，会导致非主键条件下无法执行更新。要把MySQL数据库设置为非安全更新模式
 SHOW VARIABLES LIKE "%sql_safe%";
 SET SQL_SAFE_UPDATES=0;  -- 重置SQL模式
+
 UPDATE student
 SET `grade`=90
 WHERE `grade`=100;
+
+select *
+from student;
 
 -- 课堂练习2
 USE purchase;
@@ -139,12 +147,13 @@ WHERE YEAR(`Product_Date`) > 2012;
 
 SELECT * FROM product;
 
-
 -- 三、删除数据
 USE stu_grade;
 -- 首先将student表复制为student_bak1表
 
 CREATE TABLE student_bak1 SELECT * FROM student;
+select *
+from student_bak1;
 
 -- 课堂示例12：在student_bak1表中，删除id字段值为11的记录。
 DELETE FROM student_bak1
@@ -156,11 +165,14 @@ SELECT * FROM student_bak1;
 DELETE FROM student_bak1
 WHERE `id` > 5;
 
-SELECT * FROM student_bak1;
+SELECT * FROM student_bak1
+where id > 5;
 
 -- 课堂示例14：删除student_bak1表中所有记录。
 DELETE FROM student_bak1;
 
+select *
+from student_bak1;
 
 -- TRUNCATE
 -- 首先将student表复制为student_bak2表。
@@ -214,3 +226,6 @@ CREATE TABLE product_bak SELECT * FROM product;
 SELECT * FROM product_bak;
 
 TRUNCATE product_bak;
+use purchase;
+select *
+from subsort;
