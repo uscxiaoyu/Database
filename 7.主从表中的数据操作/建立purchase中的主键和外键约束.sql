@@ -3,6 +3,14 @@ set sql_safe_updates = 0;
 -- product表的主键约束
 select * from product where product_id is null;
 delete from product where product_id is null;
+
+select *
+from product
+where product_id in (select product_id from product group by product_id having count(*) > 1);
+
+delete from product
+where product_id in (33, 44) and Sort_ID is null;
+
 alter table product add primary key (product_id);
 select count(*) from product;
 

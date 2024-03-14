@@ -251,6 +251,99 @@ WHERE price > (SELECT MAX(price)
                 FROM product
                 WHERE Product_Place = '大连');
 
+--
+/*
+DELETE table1
+FROM table1 JOIN table2 ON table1.column1 = table2.column1
+WHERE table2.column2 = 'value';
+
+-- 或者
+DELETE table1
+FROM table1, table2
+WHERE table1.column1 = table2.column1 AND table2.column2 = 'value';
+
+-- 如需同时删除table1和table2对应的行，则
+DELETE table1, table2
+FROM table1 JOIN table2 ON table1.column1 = table2.column1
+WHERE table2.column2 = 'value';
+*/
+
+-- 示例16: 删除`product`中与`sort`表的`sort_name`为'办公家具'对应的记录。
+
+-- 方法1
+set @@autocommit = 0;
+
+select * from sort;
+
+select *
+from product
+where sort_id IN (SELECT sort_id
+                  FROM sort
+                  WHERE sort_name = '文娱用品');
+
+DELETE
+FROM product
+WHERE sort_id IN (SELECT sort_id
+                  FROM sort
+                  WHERE sort_name = '文娱用品');
+rollback;
+-- 方法2
+DELETE product
+FROM sort JOIN product ON sort.sort_id = product.sort_id
+WHERE sort_name = '文娱用品';
+
+-- 同时删除product, sort中的记录
+DELETE product, sort
+FROM sort JOIN product ON sort.sort_id = product.sort_id
+WHERE sort_name = '文娱用品';
+
+select * from sort where sort_name = '文娱用品';
+
+rollback;
+
+/*
+在连接查询中，可以使用 `UPDATE` 语句更新一个或多个表中的数据行。如果要更新连接查询中的某个表的数据行，可以在 `UPDATE` 语句中指定要更新的表，并使用 `JOIN` 子句来连接其他表。下面是一个更新连接查询中某个表的数据行的示例：
+
+```mysql
+UPDATE table1 JOIN table2 ON table1.column1 = table2.column1
+SET table1.column2 = 'new_value'
+WHERE table2.column3 = 'value';
+
+-- 或者
+UPDATE table1, table2
+SET table1.column2 = 'new_value'
+WHERE table1.column1 = table2.column1 AND table2.column3 = 'value';
+
+-- 如需同时更新两个表中的属性，只需在set后面写下对应属性
+UPDATE table1, table2
+SET table1.column2 = 'new_value', table2.column4 = 'new_value'
+WHERE table1.column1 = table2.column1 AND table2.column3 = 'value';
+```
+在上述示例中，`UPDATE` 语句中指定了要更新的表 `table1`，并使用 `INNER JOIN` 子句连接了另一个表 `table2`。然后，使用 `SET` 子句来指定要更新的列和新值，其中 `table1.column2 = 'new_value'` 表示要将 `table1` 表中所有满足条件的 `column1` 和 `table2` 表中 `column3` 列为 `'value'` 的数据行的 `column2` 列的值更新为 `'new_value'`。
+*/
+-- 示例17: 更新`product`中与`sort`表的`sort_name`为'纸张'对应的产品价格，在原价格上涨价10%.
+
+
+-- 方法1
+SELECT Product_ID, Price
+FROM product
+WHERE sort_id IN (SELECT sort_id
+                  FROM sort
+                  WHERE sort_name = '纸张');
+
+UPDATE product
+SET price = 1.1 * price
+WHERE sort_id IN (SELECT sort_id
+                  FROM sort
+                  WHERE sort_name = '纸张');
+rollback ;
+-- 方法2
+UPDATE product JOIN sort ON product.sort_id = sort.sort_id
+SET price = 1.1 * price
+WHERE sort_name = '纸张';
+rollback ;
+
+
 
 /*思考：如何实现减和交操作
 假定:
@@ -315,11 +408,11 @@ where sort_id = 11 and price <= 1000;
 SELECT product.Product_ID, Order_ID, Order_date, Product_Name, Quantity
 FROM product INNER JOIN orders ON product.Product_ID = orders.Product_ID;
 -- 等价于
-SELECT orders.Order_ID, orders.Order_date, product.Product_Name, orders.Quantity
+SELECT product.Product_ID, orders.Order_ID, orders.Order_date, product.Product_Name, orders.Quantity
 FROM product, orders
 WHERE product.Product_ID = orders.Product_ID;
 -- 别名
-SELECT b.Order_ID, b.Order_date, a.Product_Name, b.Quantity
+SELECT a.Product_ID, b.Order_ID, b.Order_date, a.Product_Name, b.Quantity
 FROM product a, orders b
 WHERE a.Product_ID = b.Product_ID;
 
@@ -334,7 +427,7 @@ FROM product a RIGHT JOIN orders b ON a.Product_ID=b.Product_ID;
 -- （4）在member表和orders表之间使用内连接查询订单号、订单时间、商品名id、商品数量和客户真实姓名，并按订单时间降序排列。
 SELECT a.Order_ID, a.Order_date, a.Product_ID, a.Quantity, b.True_name
 FROM orders a JOIN member b ON a.User_name = b.User_name
-ORDER BY a.Order_date;
+ORDER BY a.Order_date DESC;
 
 -- 练习2
 
@@ -346,7 +439,8 @@ WHERE Product_ID IN (SELECT Product_ID FROM product
 -- 或者
 SELECT orders.*
 FROM orders JOIN product on orders.Product_ID = product.Product_ID
-WHERE product.Product_Place = '广东';
+WHERE product.Product_Place = '广东'
+order by Order_ID;
 
 -- （6）使用EXISTS关键字查询是否存在产地为“上海” 的商品订单信息，如果存在，查询所有订单信息。
 SELECT *

@@ -31,7 +31,16 @@ virtual意味着在查询该字段时生成对应的列值，不能直接在其�
 */
 use purchase;
 
-drop table if exists person;
+CREATE TABLE budget(
+      项目编号 int primary key,
+      项目名称 VARCHAR(50) NOT NULL,
+      交通费 DECIMAL(6, 2) NOT NULL DEFAULT 0,
+      会议费 DECIMAL(6, 2) NOT NULL DEFAULT 0,
+      打印费 DECIMAL(6, 2) NOT NULL DEFAULT 0,
+      办公用品费 DECIMAL(6, 2) NOT NULL DEFAULT 0,
+      总预算 DECIMAL(7, 2) GENERATED ALWAYS AS (交通费+会议费+打印费+办公用品费) VIRTUAL);
+
+drop table if exists budget;
 
 CREATE TABLE person(
 	id int primary key,
