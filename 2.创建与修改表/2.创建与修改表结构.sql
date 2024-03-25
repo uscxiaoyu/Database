@@ -1,16 +1,6 @@
 -- 创建表
 CREATE DATABASE stu_info;
 USE stu_info;
-CREATE TABLE `table`(id INT,
-					  name VARCHAR(20),
-					  grade FLOAT);
-drop table `table`;
-
--- 查看表的创建
-SHOW CREATE TABLE tb_grade;
-
--- 查看表结构
-DESC tb_grade;
 
 -- 课堂练习1
 CREATE DATABASE purchase;
@@ -27,6 +17,7 @@ CREATE TABLE Product (Product_ID CHAR(10) COMMENT '商品编号',
                       Description VARCHAR(255) COMMENT '商品说明');  # 关键字和自定义变量对大小写不敏感
 DESC product;
 
+use stu_info;
 CREATE TABLE tb_grade (id INT(11), name VARCHAR(20), grade FLOAT);
 
 -- 修改表名
@@ -40,7 +31,7 @@ DESC grade;
 -- 修改字段属性
 ALTER TABLE grade MODIFY id float;
 DESC grade;
-ALTER TABLE grade CHANGE COLUMN id id INT(30);
+ALTER TABLE grade CHANGE COLUMN id id MEDIUMINT;
 DESC grade;
 
 -- 添加字段
