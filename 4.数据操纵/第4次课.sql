@@ -1,4 +1,6 @@
+show databases
 -- 创建示例数据库和表
+drop database if exists stu_info;
 CREATE DATABASE stu_info;
 USE stu_info;
 
@@ -45,18 +47,53 @@ INSERT INTO student(`id`, `name`, `grade`)
 
 INSERT INTO student(`name`, `grade`)
 	VALUES('xiaofang', 99); # 未设置auto_increment的情况下，必须提供主键值
-    
--- 课堂示例6：运用INSERT…SET语句为表中指定字段或全部字段添加数据
+
+-- 示例6: 请完成下列过程以理解`auto_increment`的工作机制
+-- 创建表temp
+CREATE TABLE temp (id int primary key auto_increment,
+                   name varchar(20));
+
+-- 然后尝试以下操作理解auto_increment约束的相关运行规则
+INSERT INTO temp (name)
+VALUES ('Huang');  -- id为1, 说明初始值为1
+
+INSERT INTO temp
+VALUES (3, 'Jone');  -- id为3, 说明可以直接指定值
+
+INSERT INTO temp(name)
+VALUES ('Zhang');  -- id为4, 说明是在前一个值的基础上加1
+
+DELETE FROM temp
+WHERE id = 4;
+
+INSERT INTO temp(name)
+VALUES ('Du');  -- id为5, 说明是在前一个值的基础上加1
+
+SELECT * FROM temp;
+
+INSERT INTO temp(id, name)
+VALUES (2, 'Liu'); -- 插入成功, 可以直接指定值
+
+TRUNCATE temp;  -- 截断表，把所有行和相关操作记录清空
+
+INSERT INTO temp(name)
+VALUES ('Huang'); -- 插入成功, id值为1
+
+-- 课堂示例7：运用INSERT…SET语句为表中指定字段或全部字段添加数据
 INSERT INTO student
 	SET `id`=5, `name`='boya', `grade`=99;
 
--- 课堂示例7：运用INSERT语句为student表中所有字段添加三条数据
+SELECT * FROM student;
+
+-- 课堂示例8：运用INSERT语句为student表中所有字段添加三条数据
 INSERT INTO student VALUES
 		   (6,'lilei',99),
 		   (7,'hanmei',100),
 		   (8,'poly',40.5);
-           
--- 课堂示例8：运用INSERT语句为student表中指定字段增加多条记录
+
+SELECT * FROM student;
+
+-- 课堂示例9：运用INSERT语句为student表中指定字段增加多条记录
 INSERT INTO student (`id`,`name`) VALUES
 			(9,'liubei'), 
             (10,'guanyu'), 
@@ -64,7 +101,7 @@ INSERT INTO student (`id`,`name`) VALUES
 
 select * from student;
 
--- 课堂练习
+-- 课堂练习1
 CREATE DATABASE purchase2;
 USE purchase2;
 DROP TABLE IF EXISTS product;
@@ -148,7 +185,7 @@ WHERE YEAR(`Product_Date`) > 2012;
 SELECT * FROM product;
 
 -- 三、删除数据
-USE stu_grade;
+USE stu_info;
 -- 首先将student表复制为student_bak1表
 
 CREATE TABLE student_bak1 SELECT * FROM student;
@@ -227,5 +264,3 @@ SELECT * FROM product_bak;
 
 TRUNCATE product_bak;
 use purchase;
-select *
-from subsort;

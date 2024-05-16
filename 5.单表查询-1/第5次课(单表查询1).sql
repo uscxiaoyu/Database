@@ -188,10 +188,10 @@ WHERE product_name LIKE '______复印机';
 -- 示例16: 找出product表商品名称含有“_”的记录
 -- 插入示例行数据
 INSERT INTO product(product_id, product_name)
-VALUES ('33', '理光_复印机'),
-('44', '理光%复印机');
+VALUES ('6633', '理光_复印机'),
+('6644', '理光%复印机');
 
-SELECT * FROM PRODUCT WHERE PRODUCT_ID IN ('33', '44');
+SELECT * FROM PRODUCT WHERE PRODUCT_ID IN ('6633', '6644');
 
 SET sql_safe_updates = 0;
 
@@ -244,6 +244,11 @@ WHERE product_name LIKE '%复印机%';
 SELECT *
 FROM product
 WHERE '%过胶机%';
+
+SELECT *
+FROM product
+WHERE product_name LIKE '%复印机%' OR product_name LIKE '%过胶机%'
+order by cast(product_id as unsigned) desc;
 
 SELECT *
 FROM product
@@ -312,10 +317,12 @@ LINES TERMINATED BY 换行符;
 SELECT product_id, product_name, product_place, price, sort_id
 FROM product
 WHERE price > 100
-INTO OUTFILE 'E:\1.xls' CHARACTER SET gbk
+INTO OUTFILE '/Users/xiaoyu/Documents/mysql_export_data/1.xls' CHARACTER SET gbk
 FIELDS TERMINATED BY ','
 OPTIONALLY ENCLOSED BY '"'
 LINES TERMINATED BY '\n';
+
+show variables like "%secure%";
 
 
 -- 补充2: 将外部文件写入到mysql表中

@@ -1,7 +1,3 @@
--- 案例
-CREATE DATABASE temp;
-USE temp;
-
 -- 1. 建立外键联系
 /* 建立外键约束语法
 ALTER TABLE 表名 ADD CONSTRAINT [外键名] FOREIGN KEY(外键字段名) REFERENCES 外表表名(主键字段名);
@@ -10,8 +6,9 @@ ALTER TABLE 表名 ADD CONSTRAINT [外键名] FOREIGN KEY(外键字段名) REFER
 */
 
 -- 示例1: 创建`student`表，并构建与`grade`表之间的联系
-CREATE DATABASE temp;
-USE temp;
+DROP DATABASE stu_info;
+CREATE DATABASE stu_info;
+USE stu_info;
 
 drop table grade;
 CREATE TABLE grade(
@@ -22,8 +19,10 @@ CREATE TABLE grade(
 CREATE TABLE student(
     sid INT PRIMARY KEY,
     sname VARCHAR(36),
-    gid INT NOT NULL,
+    gid int NOT NULL,
     CONSTRAINT fk_gid FOREIGN KEY (gid) REFERENCES grade(id));
+
+show create table student;
 
 /* 建立外键的完整格式
 ALTER TABLE 表名 ADD CONSTRAINT [外键名] FOREIGN KEY(外键字段名) REFERENCES 外表表名(主键字段名)
@@ -47,14 +46,19 @@ DROP FOREIGN KEY fk_gid;
 
 SHOW CREATE TABLE student;
 
+alter table student
+drop key fk_gid;
+
 -- 练习1
 set sql_safe_updates=0;
+show variables like "%foreign%";
 use purchase;
 -- (1) 构建`product`表的主键为`product_id`, `sort`表的主键为`sort_id`, `subsort`表的主键为`subsort_id`
 alter table product add primary key (product_id); 
 alter table sort add primary key (sort_id);
 alter table subsort add primary key (subsort_id);
 
+-- 如果创建主键不成功，依次对表执行一下操作，检查主键字段是否符合非空和唯一约束。
 select *
 from product
 where product_id is null;
@@ -66,14 +70,21 @@ where product_id in (select product_id
     group by Product_ID
     having count(*) > 1);
 
+create table t_product as
+    select distinct *
+    from product
+    where Product_ID is not null;
+
 delete from product 
 where product_id is null;
 
 -- (2) 构建`product`表与`sort`表之间的外键约束`fk_sortid1`，外键为`sort_id`
+-- 检查是否符合外键约束的条件
 select product_id, sort_id
 from product
 where sort_id not in (select sort_id from sort);
 
+-- 主表中插入外键中不存在的sort_id
 insert into sort
 set sort_id=95, Sort_name='xx';
 
@@ -93,7 +104,7 @@ alter table subsort
 add constraint fk_sortid2 foreign key (sort_id) references sort(sort_id);
 
 -- (4) 构建`product`表与`subsort`表之间的外键约束`fk_subsortid`，外键为`subsort_id` 
-show variables like "%foreign%"; -- 如果值为ON，则开启外键约束检查
+show variables like "%foreign%"; -- 如果foreign_key_checks值为ON，则开启外键约束检查
 
 select distinct subsort_id 
 from product 
@@ -141,43 +152,56 @@ SELECT p.*
 FROM product p JOIN sort s ON p.sort_id = s.sort_id
 WHERE s.sort_name = '办公机器设备';
 
--- 课堂示例4：为关联表添加数据
+-- 课堂示例4：在从表`product`中添加记录，其中`product_id`值为6001, `sort_id`对应值为99
 -- 在从表中插入主表中没有的值99，提示1452错误，违反外键约束
-INSERT INTO product(sort_id) VALUES(99);
-
-SELECT * FROM sort;
--- 为主表新添加sort_id为99的记录，然后再次往从表中插入该记录
+INSERT INTO product(Product_ID, sort_id) VALUES(6000, 99);
+SELECT * FROM sort WHERE sort_id = 99;
+-- 解决方法: 为主表sort新添加sort_id为99的记录，然后再次往从表product中插入该记录
 INSERT INTO sort(sort_id, sort_name) VALUES (99, '其它类别');
-INSERT INTO product(sort_id) VALUES(99);
+SELECT * FROM sort WHERE sort_id = 99;
+
+INSERT INTO product(Product_ID, sort_id) VALUES(6000, 99);
 
 SELECT *
 FROM product
 WHERE sort_id = '99';
 
 -- 课堂示例5：为关联表删除数据
--- (1) 删除从表中的sort_id为14的对应记录
+-- (1) 删除从表中的sort_id为11的对应记录
 -- 直接删除，提示1451错误, 因为product表中有sort_id参照sort中的sort_id，且subsort表也参照了sort表
 DELETE FROM sort
-WHERE sort_id = 14;
+WHERE sort_id = 13;
+
+select *
+from sort
+where sort_id = 13;
 
 SELECT *
 FROM product
-WHERE sort_id = 14;
+WHERE sort_id = 13;
+
+select *
+from subsort
+where sort_id = 13;
 
 -- 首先删除product表和subsort表中有sort_id为14的记录
 DELETE FROM product
-WHERE sort_id = 14;
+WHERE sort_id = 13;
 
 DELETE FROM subsort
-WHERE sort_id = 14;
+WHERE sort_id = 13;
 
 -- 然后，删除主表中的sort_id为14的记录
 DELETE FROM sort
-WHERE sort_id = 14;
+WHERE sort_id = 13;
 
 -- (2) 设置从表中参照列对应值为null
 SELECT *
 FROM product
+WHERE sort_id = 99;
+
+SELECT *
+FROM subsort
 WHERE sort_id = 99;
 
 UPDATE product
@@ -203,14 +227,20 @@ DROP FOREIGN KEY fk_sortid2;
 
 ALTER TABLE subsort
 ADD CONSTRAINT fk_sortid2 FOREIGN KEY (sort_id) REFERENCES sort (sort_id) ON DELETE CASCADE;
+
 select *
 from product
+where sort_id = 64;
+
+select *
+from subsort
 where sort_id = 64;
 
 DELETE FROM sort
 WHERE sort_id = 64;
 
 SELECT * FROM product WHERE sort_id = 64;
+SELECT * FROM subsort WHERE sort_id = 64;
 
 /*4. 更新数据*/
 
@@ -227,25 +257,33 @@ show create table product;
 show create table subsort;
 
 -- 方法1: on update cascade
-update sort set sort_id = 94 where sort_id = 33;
+update sort set sort_id = 93 where sort_id = 33;
 
 alter table product
 drop foreign key fk_sortid1;
 
 alter table product
-add constraint fk_sortid1 foreign key (sort_id) references sort(sort_id) on update cascade;
+add constraint fk_sortid1 foreign key (sort_id) references sort(sort_id)
+    on delete cascade
+    on update cascade;
 
 alter table subsort
 drop foreign key fk_sortid2;
 
 alter table subsort
-add constraint fk_sortid2 foreign key (sort_id) references sort(sort_id) on update cascade;
+add constraint fk_sortid2 foreign key (sort_id) references sort(sort_id)
+    on delete cascade
+    on update cascade;
 
 show create table product;
 show create table subsort;
 
-select * from product where sort_id=94 limit 10;
-select * from sort where sort_id=94;
+-- 查看product表和subsort表中sort_id=33是否被更新
+select * from product where sort_id=93 limit 10;
+select * from sort where sort_id=93;
+
+select * from product where sort_id=33 limit 10;
+select * from sort where sort_id=33;
 
 select * from sort;
 
@@ -254,7 +292,9 @@ alter table product
 drop foreign key fk_sortid1;
 
 alter table product
-add constraint fk_sortid1 foreign key (sort_id) references sort(sort_id) on update set null;
+add constraint fk_sortid1 foreign key (sort_id) references sort(sort_id)
+    on delete cascade
+    on update set null;
 
 alter table subsort
 drop foreign key fk_sortid2;
@@ -262,11 +302,13 @@ drop foreign key fk_sortid2;
 alter table subsort
 add constraint fk_sortid2 foreign key (sort_id) references sort(sort_id) on update set null;
 
-update sort set sort_id = 96 where sort_id = 94;
+show create table subsort;
 
+update sort set sort_id = 91 where sort_id = 97;
 
-select * from product where sort_id = 94 limit 10;
+select * from product where sort_id = 97 limit 10;
 select * from product where sort_id is null limit 10;
+select * from subsort where sort_id = 97;
 select * from subsort where sort_id is null;
 
 -- 课堂练习2

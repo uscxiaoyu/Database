@@ -6,7 +6,7 @@ select * from sort where sort_id=33;
 insert into sort(sort_id, sort_name) values (93, '其它');
 -- 查看sort_id=33是否被product和subsort表参照
 select * from product where sort_id=33 limit 10;
-select * from sort where sort_id=33;
+select * from subsort where sort_id=33;
 
 -- 查看product表和subsort表中外键约束
 show create table product;

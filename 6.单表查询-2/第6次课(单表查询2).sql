@@ -9,6 +9,9 @@ select product_id, price
 from product
 where price is null;
 
+delete from product
+where Price is null;
+
 select * from product;
 
 -- 示例2：使用count()统计product表中的记录个数
@@ -28,6 +31,7 @@ SELECT 字段名1,字段名2,……
 FROM 表名
 ORDER BY 字段名1 [ASC | DESC]，字段名2 [ASC | DESC]……
 */
+
 -- 示例4： 找出商品名称中含有“理光”和“墨粉”的商品记录， 按零售价降序排列。（理光公司的墨粉产品）
 SELECT *
 FROM product
@@ -108,7 +112,7 @@ FROM product
 GROUP BY product_place
 ORDER BY product_place DESC;
 
--- 示例9：示例9：根据`product`表计算不同产地的商品单价最大值，保留单价最大值大于100元的记录，并按照单价最大值降序排列。
+-- 示例9: 根据`product`表计算不同产地的商品单价最大值，保留单价最大值大于100元的记录，并按照单价最大值降序排列。
 SELECT product_place, MAX(price)
 FROM product
 GROUP BY product_place 
@@ -132,6 +136,25 @@ FROM product
 GROUP BY subsort_id;
 
 show variables like '%sql_mode%';
+SELECT @@session.sql_mode; -- 查看当前session的sql_mode
+
+SELECT sort_id, subsort_name, COUNT(*)
+FROM subsort
+GROUP BY sort_id; -- 在only_full_group_by配置下不能运行
+
+SELECT sort_id, ANY_VALUE(subsort_name), COUNT(*)
+FROM subsort
+GROUP BY sort_id; -- 可运行
+
+-- 或者去掉only_full_group_by选项
+SET SESSION sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+SELECT sort_id, subsort_name, COUNT(*)
+FROM subsort
+GROUP BY sort_id; -- 如果没有only_full_group_by配置，则可以运行成功
+
+-- 若没有only_full_group_by选项，可通过以下方式追加
+SET SESSION sql_mode = CONCAT(@@session.sql_mode, ",only_full_group_by");
+SELECT @@session.sql_mode;
 
 -- 4. 其它函数
 -- 示例12: 数学函数
@@ -177,17 +200,17 @@ SELECT DATE_FORMAT(NOW(),'%d %b %y'); -- y 2位年份
 SELECT DATE_FORMAT(NOW(),'%d %b %Y %T:%f'); -- T时间, 24-小时(hh:mm:ss)
 
 -- 示例15：条件判断
-SELECT IF(5>6, '对', '错');
+SELECT IF(5 > 6, '对', '错');
 SELECT IFNULL(null, '空值'), IFNULL(1, '空值');
 
 -- 让空值排在末尾
 SELECT * 
 FROM product 
-ORDER BY price;
+ORDER BY price desc;
 
 SELECT *
 FROM product 
-ORDER BY if(price is null, 0, 1) DESC, price ASC;
+ORDER BY if(price is null, 0, 1) DESC, price desc;
 
 -- 示例16:查询Product表中的Product_ID，Product_Name，Sort_ID 和SubSort_ID，
 -- 把Sort_ID 和SubSort_ID 用“-”连接起来

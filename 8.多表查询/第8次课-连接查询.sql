@@ -52,13 +52,14 @@ FROM sort, subsort WHERE sort.Sort_ID = subsort.Sort_ID;
 SELECT 所查字段 FROM 表1 LEFT|RIGHT [OUTER] JOIN 表2
 ON 表1.关系字段 = 表2.关系字段 WHERE 条件
 */
+select * from sort;
 
 insert into sort
 values (98, '其它');
 -- 示例4：在sort表和subsort表之间使用左连接查询
 SELECT *
 FROM sort LEFT JOIN subsort ON sort.Sort_ID = subsort.Sort_ID 
-ORDER BY sort.sort_id;
+ORDER BY sort.sort_id desc;
 
 -- 示例5：在sort表和subsort表之间使用右连接查询
 SELECT *
@@ -131,19 +132,46 @@ FROM product JOIN sort ON (product.sort_id = sort.sort_id AND sort.sort_id >= 92
 ORDER BY cast(product_id as unsigned) desc;
 
 -- 外连接：执行结果不同
-SELECT product_id, product_name, product.Sort_ID, sort.sort_id, sort_name
+SELECT count(*)
+FROM product;
+
+SELECT count(*)
+FROM product LEFT JOIN sort ON product.sort_id = sort.sort_id
+ORDER BY cast(product_id as unsigned) desc;  -- 表product中的部分数据未保留
+
+-- sort.sort_id >= 92
+SELECT product_id, product_name, product.sort_id, sort.sort_id, sort_name
 FROM product LEFT JOIN sort ON product.sort_id = sort.sort_id
 WHERE sort.sort_id >= 92
 ORDER BY cast(product_id as unsigned) desc;  -- 表product中的部分数据未保留
 
-SELECT product_id, product_name, product.Sort_ID, sort.sort_id, sort_name
+SELECT product_id, product_name, product.sort_id, sort.sort_id, sort_name
 FROM product LEFT JOIN sort ON (product.sort_id = sort.sort_id AND sort.sort_id >= 92)
-ORDER BY cast(product_id as unsigned) desc; -- 表product中的所有数据保留
+ORDER BY cast(product_id as unsigned) desc;  -- 表product中的所有数据保留
 
-SELECT product_id, product_name, product.Sort_ID, a.sort_id, sort_name
-FROM product LEFT JOIN (select * from sort where sort_id >= 92) a
-    ON product.sort_id = a.sort_id
-ORDER BY cast(product_id as unsigned) desc; -- 表product中的所有数据保留
+-- 等价查询: product和sort表按sort_id进行内连接
+-- 然后过滤sort_id大于92的记录, 最后与product表按product_id进行左连接
+SELECT a.product_id, product_name, a.sort_id, b.sort_id, sort_name
+FROM product a LEFT JOIN (SELECT Product_ID, sort.sort_id, sort_name
+                        FROM product JOIN sort ON (product.Sort_ID = sort.sort_id and sort.sort_id >= 92)) b
+    ON a.Product_ID = b.Product_ID
+ORDER BY cast(a.product_id as unsigned) desc;
+
+-- product.sort_id >= 92
+SELECT product_id, product_name, product.sort_id, sort.sort_id, sort_name
+FROM product LEFT JOIN sort ON product.sort_id = sort.sort_id
+WHERE product.sort_id >= 92
+ORDER BY cast(product_id as unsigned) desc;  -- 表product中的部分数据未保留
+
+SELECT product_id, product_name, product.sort_id, sort.sort_id, sort_name
+FROM product LEFT JOIN sort ON (product.sort_id = sort.sort_id AND product.sort_id >= 92)
+ORDER BY cast(product_id as unsigned) desc;  -- 表product中的所有数据保留
+
+SELECT a.product_id, product_name, a.sort_id, b.sort_id, sort_name
+FROM product a LEFT JOIN (SELECT Product_ID, sort.sort_id, sort_name
+                        FROM product JOIN sort ON (product.Sort_ID = sort.sort_id and product.sort_id >= 92)) b
+    ON a.Product_ID = b.Product_ID
+ORDER BY cast(a.product_id as unsigned) desc;
 
 -- 补充1：自然连接--寻找量表中相同的字段进行等值连接，去除重复字段
 /* 语法:
@@ -205,7 +233,7 @@ WHERE subsort.SubSort_name = '闹钟';
 -- 示例13：使用EXISTS关键字，查询subsort表的sort_id（不）属于sort的所有记录。
 SELECT EXISTS (SELECT Sort_ID
                 FROM subsort
-                WHERE SubSort_ID=1101);
+                WHERE SubSort_ID=99101);
 
 select *
 from subsort;
@@ -429,8 +457,6 @@ SELECT a.Order_ID, a.Order_date, a.Product_ID, a.Quantity, b.True_name
 FROM orders a JOIN member b ON a.User_name = b.User_name
 ORDER BY a.Order_date DESC;
 
--- 练习2
-
 -- （5）使用IN关键字查询商品产地为“广东”的商品订单信息。
 SELECT *
 FROM orders
@@ -446,8 +472,36 @@ order by Order_ID;
 SELECT *
 FROM orders
 WHERE EXISTS (SELECT *
-            FROM product JOIN orders ON product.Product_ID = orders.Product_ID
+            FROM product JOIN purchase.orders o on product.Product_ID = o.Product_ID
             WHERE product.Product_Place = '上海');
+
+-- 查看商品产地为上海的订单信息
+SELECT *
+FROM orders
+WHERE EXISTS (SELECT *
+            FROM product
+            WHERE product.Product_ID = orders.Product_ID and product.Product_Place = '上海');
+
+SELECT o.*
+FROM orders o LEFT JOIN purchase.product p on o.Product_ID = p.Product_ID
+WHERE Product_Place = '上海';
+
+
+-- 利用`exists`子句实现以下查询：若产品存在对应订单，则返回该产品的所有信息
+SELECT *
+FROM product p
+WHERE EXISTS(
+  SELECT product_id
+  FROM `orders`
+  WHERE product_id = p.product_id
+);
+
+SELECT p.*
+FROM product p NATURAL JOIN `orders` o;
+
+SELECT p.*
+FROM product p
+WHERE product_id IN (SELECT product_id FROM `orders`);
 
 -- （7）使用`ANY`查询商品价格大于任一`sort_id`为11的商品价格的商品类别名称（使用`product`和`sort`）
 SELECT distinct sort_id, sort_name
@@ -465,11 +519,3 @@ ORDER BY Product_ID;
 SELECT price
 FROM product
 WHERE Product_Place = '珠海';
-
-select *
-from sort
-where sort_id not in (select distinct sort_id from subsort);
-
-select *
-from sort
-where sort_id in (select distinct sort_id from subsort);

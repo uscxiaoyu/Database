@@ -241,31 +241,32 @@ WHERE price > 1000;  -- a 为衍生表，存在内存中
 
 -- 补充2
 -- with check option v.s. without check option
-show variables like "%auto%";  -- 事务自动提交选项，可控制是否将
+show variables like "%autoc%";  -- 事务自动提交选项，可控制是否将
 set autocommit=0;
 
 select *
 from product
-where Product_ID > 6000;
+where Product_ID > 5500;
 
 start transaction;
 
 delete from product
-where product_id > 6000;
+where product_id > 5500;
 
-commit ;
+# commit ;
 rollback; -- 回滚到事务开始前的数据库状态，即删除product_id > 6000 的记录前
 
+-- 创建视图view_product: sort_id为11
 create or replace view view_product
 as
 select * from product where sort_id = 11;
 
 start transaction;
 insert into view_product(product_id, sort_id)
-values (9999, 12); -- 执行成功，即使sort_id为12
+values (9999, 12); -- 即使sort_id为12也插入成果
 
-select * from product where product_id = 9999; -- 可以查看到相关记录
-select * from view_product where product_id = 9999; -- 不能查看，因为sort_id不为11
+select * from product where product_id = 9999; -- 在product表中可以查看到相关记录
+select * from view_product where product_id = 9999; -- 在view_product表中不能查看，因为sort_id不为11
 rollback; -- 回滚到事务开始前的数据库状态，即未插入(9999, 12)前
 
 create or replace view view_product
@@ -295,7 +296,7 @@ insert into view_view_product(product_id, price, sort_id)
 values (9999, 2000, 12); -- 执行成功：虽然违背view_product的where条件sort_id = 11
 
 insert into view_view_product(product_id, price, sort_id)
-values (9998, 200, 11); -- 插入失败：price < 1000，不满足view_view_product的lock check
+values (9998, 200, 11); -- 插入失败：price < 1000，不满足view_view_product的local check
 
 select * from product where product_id = 9999; -- 有结果
 select * from view_product where product_id = 9999; -- 无结果
@@ -351,13 +352,13 @@ SELECT *
 FROM view_sort
 WHERE sort_name LIKE '%办公%';
 
--- (4) 利用CREATE OR REPLACE VIEW创建view_member视图, 包含member表中的user_name, sex, email等字段
+-- (4) 利用CREATE OR REPLACE VIEW创建view_member视图, 包含member表中的user_name, true_name, sex, email等字段
 CREATE OR REPLACE VIEW view_member
 AS
-SELECT user_name, sex, email
+SELECT user_name, true_name, sex, email
 FROM member;
 
--- 利用ALTER VIEW修改视图view_member，使其包含member表中的user_name, sex, email, address, phone等字段
+-- 利用ALTER VIEW修改视图view_member，使其包含member表中的user_name, true_name, sex, email, address, phone等字段
 ALTER VIEW view_member
 AS
 SELECT user_name, true_name, sex, email, address, phone

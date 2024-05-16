@@ -45,12 +45,12 @@ SELECT *
 FROM product p
 WHERE EXISTS(
   SELECT product_id
-  FROM `order`
+  FROM `orders`
   WHERE product_id = p.product_id
 );
 
-SELECT p*
-FROM product p NATURAL JOIN `order` o;
+SELECT p.*
+FROM product p NATURAL JOIN `orders` o;
 
 SELECT p.*
 FROM product p

@@ -29,19 +29,10 @@ virtual意味着在查询该字段时生成对应的列值，不能直接在其�
 - 模拟函数索引，如可在json列中的某些子属性创建生成列，进而构建索引。（缺点在于，该属性数据将存储两次）
 - 查询优化器可识别出使用了生成列定义的查询，从而可利用创建在生成列上的索引，即便该查询未直接使用该列。
 */
+
 use purchase;
 
-CREATE TABLE budget(
-      项目编号 int primary key,
-      项目名称 VARCHAR(50) NOT NULL,
-      交通费 DECIMAL(6, 2) NOT NULL DEFAULT 0,
-      会议费 DECIMAL(6, 2) NOT NULL DEFAULT 0,
-      打印费 DECIMAL(6, 2) NOT NULL DEFAULT 0,
-      办公用品费 DECIMAL(6, 2) NOT NULL DEFAULT 0,
-      总预算 DECIMAL(7, 2) GENERATED ALWAYS AS (交通费+会议费+打印费+办公用品费) VIRTUAL);
-
-drop table if exists budget;
-
+drop table if exists person;
 CREATE TABLE person(
 	id int primary key,
     first_name varchar(20) not null,
@@ -61,7 +52,6 @@ insert into person(id, first_name, last_name)
 values (1, 'Mike', 'James');
 
 select * from person;
-
 
 drop table t1;
 CREATE TABLE t1 (
@@ -83,9 +73,85 @@ values ('{"id": 1, "name":"John"}');
 
 select * from jemp;
 
--- 二、变量定义
+-- 二、REPLACE`: 插入或更新
+/*
+基本语法：
+REPLACE INTO tbl_name
+    [PARTITION (partition_name [, partition_name] ...)]
+    [(col_name [, col_name] ...)]
+    {VALUES | VALUE} (value_list) [, (value_list)] ...
+
+REPLACE INTO tbl_name
+    [PARTITION (partition_name [, partition_name] ...)]
+    SET assignment_list
+
+REPLACE INTO tbl_name
+    [PARTITION (partition_name [, partition_name] ...)]
+    [(col_name [, col_name] ...)]
+    SELECT ...
+
+value:
+    {expr | DEFAULT}
+
+value_list:
+    value [, value] ...
+
+assignment:
+    col_name = value
+
+assignment_list:
+    assignment [, assignment] ...
+*/
+
+
+Drop table if exists p;
+
+CREATE TABLE p (p_id char(5) primary key,
+               p_name varchar(50) unique,
+               price decimal(7, 2) not null default 0);
+replace into p
+values(1, 'a', 1.2), (2, 'b', 5.0); -- 插入
+
+select * from p;
+
+replace into p (p_id, p_name, price)
+values(1, 'a', 3); -- 更新p_id值为1，p_name为'a'的行的price值为3
+
+replace into p (p_id, p_name, price)
+values(3, 'c', 3.0); -- 相当于insert into
+
+replace into p (p_id, p_name, price)
+values(3, 'f', 5), (4, 'e', 8); -- 相当于update和insert into
+
+-- 小心以下更新
+replace into p (p_id, p_name, price)
+values(3, 'e', 6); -- 更新p_id值为3的行(3, 'f', 3) -> (3, 'e', 6)；更新p_name为'e'的行(4, 'e', 8) -> (3, 'e', 6), 然后去重.
+
+-- 三、临时表
+/*
+如果需要保存一些查询的中间结果，可以使用临时表`temporary table`。用户在某一次会话（session）中创建的临时表只在该次会话可见，
+会话结束时临时表也将自动删除。因此，两个不同的会话可以在同一个数据库中创建相同名称的临时表。注意，临时表的名称可以与正式表相同，
+此后数据操作涉及该表名时将优先选择临时表。注意，临时表上不能创建索引。
+*/
+CREATE TEMPORARY TABLE temp_product (product_id int primary key,
+                                     product_name varchar(50),
+                                     price decimal(7, 2));
+
+SHOW CREATE TABLE temp_product;
+SHOW TABLES;
+DROP TEMPORARY TABLE temp_product;
+
+CREATE TEMPORARY TABLE product AS SELECT * FROM product LIMIT 10;
+SHOW CREATE TABLE product;
+
+select * from product;
+drop temporary table product;
+
+-- 四、变量定义
 use purchase;
 -- 1. 编程中涉及的数据类型
+select @a;
+
 -- 1.1 字符串常量
 select 'I\'m a \teacher' as coll, "you're a stude\nt" as col2; -- MySQL推荐使用单引号表示字符串
 
@@ -124,6 +190,7 @@ show variables like "%character%";
 select @@autocommit;
 select @@sql_mode;
 select @@character_set_database;
+
 -- 2.1 用户会话变量
 -- 方法1：set
 set @user_name = '张三'; -- 变量数据类型由等号右边表达式的计算结果决定
@@ -210,15 +277,34 @@ select product.* from product join sort on product.sort_id = sort.sort_id
 where sort_name = '纸张';
 
 -- 示例6：从`product`表所有记录奇数行构成的集合。
+-- 用户会话变量
 SELECT row_num, product_id, product_name, price
 FROM (SELECT @row_num := @row_num + 1 AS row_num, product_id, product_name, price
-	FROM product, (SELECT @row_num := 0) AS r order by product_id desc) AS b_product
+	FROM product, (SELECT @row_num := 0) AS r
+	order by cast(product_id as unsigned) desc) AS b_product
 WHERE row_num mod 2 != 0;
+
+-- 窗口函数
+SELECT row_num, product_id, product_name, price
+FROM (
+    SELECT
+        ROW_NUMBER() OVER (ORDER BY CAST(product_id AS unsigned) desc) AS row_num,
+        product_id,
+        product_name,
+        price
+    FROM
+        product
+) AS b_product
+WHERE row_num MOD 2 != 0;
+
 
 SELECT @row_num := @row_num + 1 AS row_num, product_id, product_name, price
 FROM product, (SELECT @row_num := 0) AS r
 order by price desc;
 
+select @row_num := 0;
+
+-- 解析
 SELECT *
 from product, (select @row_num := 0) r;
 
@@ -226,11 +312,6 @@ select *
 FROM product, (SELECT @row_num := 0) AS r;
 
 select * from product where product_id is null;
-
-delete from product where product_id is null;
-
-select * from product;
-
 
 SELECT @row_num := 0;
 
@@ -249,36 +330,77 @@ from (select sort_id, subsort_id, num_product,
             @last_num_product := num_product
       from (select sort_id, subsort_id, count(*) num_product
             from product
-            group by subsort_id
+            group by sort_id, subsort_id
             order by sort_id, num_product desc) x, (select @r:=null, @last_sort_id:=null, @last_num_product:=null) r) a
 where 排名 <= 5; # @last_sort_id和@last_num_product分别上一行记录值，有些数量的相同的排名应该相同
+
+select sort_id, subsort_id, num_product, 排名
+from (select sort_id, subsort_id, num_product,
+            if(sort_id = @last_sort_id,
+               if(num_product = @last_num_product, @r, @r := @r+1),
+               @r := 1) 排名,
+            @last_sort_id := sort_id,
+            @last_num_product := num_product
+      from (select sort_id, subsort_id, count(*) num_product
+            from product
+            group by sort_id, subsort_id
+            order by sort_id, num_product desc) a) x
+where 排名 <= 5;
 
 -- 另一种思路
 -- step 1
 select a.sort_id, b.subsort_id, count(*) num_product
 from sort a left join subsort b on a.sort_id=b.sort_id left join product c on b.subsort_id=c.SubSort_ID
-group by c.SubSort_ID
-order by sort_id, num_product desc;
+group by a.sort_id, b.SubSort_ID
+order by a.sort_id, num_product desc;
 
 -- step 2
-select if(@vsortid=sort_id, @row_num:=@row_num + 1, @row_num:=1) rank, @vsortid := sort_id, u.*
+select if(@vsortid=sort_id, @row_num:=@row_num + 1, @row_num:=1) `rank`, @vsortid := sort_id, u.*
 from (select a.sort_id, b.subsort_id, count(*) num_product
 	from sort a left join subsort b on a.sort_id=b.sort_id left join product c on b.subsort_id=c.SubSort_ID
-	group by c.SubSort_ID
+	group by a.sort_id, b.SubSort_ID
 	order by sort_id, num_product desc) u, (select @vsortid:=null, @row_num:=null) v;
 
 -- step 3
-select sort_id, subsort_id, num_product, rank
+select sort_id, subsort_id, num_product, `rank`
 from    
-(select if(@vsortid=sort_id, @row_num:=@row_num + 1, @row_num:=1) rank, @vsortid := sort_id, u.*
+(select if(@vsortid=sort_id, @row_num:=@row_num + 1, @row_num:=1) `rank`, @vsortid := sort_id, u.*
 	from (select a.sort_id, b.subsort_id, count(*) num_product
 		from sort a left join subsort b on a.sort_id=b.sort_id left join product c on b.subsort_id=c.SubSort_ID
-		group by c.SubSort_ID
-		order by sort_id, num_product desc) u, (select @vsortid:=null, @row_num:=null) v) x
-where rank <=5;
+		group by a.sort_id, b.SubSort_ID
+		order by a.sort_id, num_product desc) u, (select @vsortid:=null, @row_num:=null) v) x
+where `rank` <=5;
+
+-- mysql 8.0 以上版本可以利用窗口函数实现
+select t.*
+from (select sort_id,
+       subsort_id,
+       count(product_id) as num_product,
+       dense_rank() over (partition by sort_id order by avg(price) desc) as 平均价格排名,
+       dense_rank() over (partition by sort_id order by count(product_id) desc) as 产品类别排名
+    from product
+    group by sort_id, subsort_id) t
+where 产品类别排名 <= 5;
+
+-- 或者使用CTE实现
+WITH ProductCounts AS (
+    SELECT
+        sort_id,
+        subsort_id,
+        COUNT(*) as num_product
+    FROM product
+    GROUP BY sort_id, subsort_id
+)
+SELECT *
+FROM (SELECT
+        sort_id,
+        subsort_id,
+        num_product,
+        DENSE_RANK() OVER (PARTITION BY sort_id ORDER BY num_product DESC) as 排名
+    FROM ProductCounts) x
+WHERE 排名 <= 5;
 
 -- 3. 运算符
-
 -- 算术
 set @num=15;
 select @num + 2, @num - 2, @num * 3, @num / 3;
@@ -304,7 +426,6 @@ select isnull(null); -- 函数
 select 'stud' like 'stud', 'stud' like 'stu_', 'stud' like 'st%';
 select 'student' regexp '^t', 'student' regexp '[a-z]'; -- 正则是否匹配模式
 
-
 -- 逻辑
 select 1 and 2, 2 and 0, 2 and true, 0 or true, not 2, not false;
 select 1 && 2, 2 && 0, 2 && true, 0 || true, ! 2, ! false;
@@ -314,7 +435,7 @@ select 1 and 0 or 1; -- 运算优先级, 先运算and，后运算or
 select 0 or 0 and 1;
 select not 1 or 0 and 1;
 
--- 三、prepared statement 预处理语句
+-- 五、prepared statement 预处理语句
 /*
 `MySQL5.7`提供了服务器端的预处理语句，有以下优点：
 
@@ -365,77 +486,15 @@ execute stmt_insert using @pid, @pname, @price;
 select * from product where product_id =9999;
 deallocate prepare stmt_insert;
 
--- 四、REPLACE`: 插入或更新
-/*
-基本语法：
-REPLACE INTO tbl_name
-    [PARTITION (partition_name [, partition_name] ...)]
-    [(col_name [, col_name] ...)]
-    {VALUES | VALUE} (value_list) [, (value_list)] ...
 
-REPLACE INTO tbl_name
-    [PARTITION (partition_name [, partition_name] ...)]
-    SET assignment_list
+-- 练习
+CREATE TABLE budget(
+      项目编号 int primary key,
+      项目名称 VARCHAR(50) NOT NULL,
+      交通费 DECIMAL(6, 2) NOT NULL DEFAULT 0,
+      会议费 DECIMAL(6, 2) NOT NULL DEFAULT 0,
+      打印费 DECIMAL(6, 2) NOT NULL DEFAULT 0,
+      办公用品费 DECIMAL(6, 2) NOT NULL DEFAULT 0,
+      总预算 DECIMAL(7, 2) GENERATED ALWAYS AS (交通费+会议费+打印费+办公用品费) VIRTUAL);
 
-REPLACE INTO tbl_name
-    [PARTITION (partition_name [, partition_name] ...)]
-    [(col_name [, col_name] ...)]
-    SELECT ...
-
-value:
-    {expr | DEFAULT}
-
-value_list:
-    value [, value] ...
-
-assignment:
-    col_name = value
-
-assignment_list:
-    assignment [, assignment] ...
-    
-
-*/
-CREATE TABLE p (p_id char(5) primary key,
-               p_name varchar(50) unique,
-               price decimal(7, 2) not null default 0);
-replace into p
-values(1, 'a', 1.2), (2, 'b', 5.0); -- 插入
-
-select * from p;
-
-replace into p (p_id, p_name, price)
-values(1, 'a', 3); -- 更新p_id值为1，p_name为'a'的行的price值为3
-
-replace into p (p_id, p_name, price)
-values(3, 'c', 3.0); -- 相当于insert into
-
-replace into p (p_id, p_name, price)
-values(3, 'f', 5), (4, 'e', 8); -- 相当于update和insert into
-
--- 小心以下更新
-replace into p (p_id, p_name, price)
-values(3, 'e', 6); -- 更新p_id值为3的行(3, 'f', 3) -> (3, 'e', 6)；更新p_name为'e'的行(4, 'e', 8) -> (3, 'e', 6), 然后去重.
-
--- 五、临时表
-/*
-如果需要保存一些查询的中间结果，可以使用临时表`temporary table`。用户在某一次会话（session）中创建的临时表只在该次会话可见，
-会话结束时临时表也将自动删除。因此，两个不同的会话可以在同一个数据库中创建相同名称的临时表。注意，临时表的名称可以与正式表相同，
-此后数据操作涉及该表名时将优先选择临时表。注意，临时表上不能创建索引。
-*/
-
-USE purchase;
-
-CREATE TEMPORARY TABLE temp_product (product_id int primary key, 
-                                     product_name varchar(50),
-                                     price decimal(7, 2));
-
-SHOW CREATE TABLE temp_product;
-SHOW TABLES;
-DROP TEMPORARY TABLE temp_product;
-
-CREATE TEMPORARY TABLE product AS SELECT * FROM product LIMIT 10;
-SHOW CREATE TABLE product;
-
-select * from product;
-
+drop table if exists budget;
