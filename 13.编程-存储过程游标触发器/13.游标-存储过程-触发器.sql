@@ -19,6 +19,34 @@ language sql
 
 */
 
+-- IN, OUT, INOUT三种类型参数的区别
+-- 创建一个存储过程，该过程接受三种类型的参数
+DROP PROCEDURE IF EXISTS DemoProcedure;
+
+DELIMITER $$
+CREATE PROCEDURE DemoProcedure(IN p1 INT, OUT p2 INT, INOUT p3 INT)
+BEGIN
+    -- 将输入参数 p1 的值乘以 2
+    SET p2 = p1 * 2;
+    -- 将INOUT参数 p3 的值乘以 3
+    SET p3 = p3 * 3;
+    -- 将IN参数加上10
+    SET p1 = p1 + 10;
+END$$
+DELIMITER ;
+
+-- 调用存储过程
+SET @in_param = 10;   -- IN 参数
+SET @out_param = 0;   -- OUT 参数，初始值通常无关紧要
+SET @inout_param = 5; -- INOUT 参数，需要初始值
+
+CALL DemoProcedure(@in_param, @out_param, @inout_param);
+
+-- 查看结果
+SELECT @in_param, @out_param, @inout_param;
+
+
+
 -- 示例1：把一定数量的数据插入到一个表中
 CREATE TABLE test_table
 (
@@ -124,6 +152,40 @@ BEGIN
 END
 $$
 DELIMITER ;
+
+
+CREATE TABLE test_table_2
+(
+    id      INT AUTO_INCREMENT PRIMARY KEY,
+    column1 INT
+);
+
+DROP PROCEDURE IF EXISTS example_procedure;
+DELIMITER $$
+CREATE PROCEDURE example_procedure(val INT)
+BEGIN
+    DECLARE invalid_value CONDITION FOR SQLSTATE '45000';  -- 自定义条件
+    DECLARE exit HANDLER FOR invalid_value
+    BEGIN
+        -- 异常处理代码
+        SELECT 'An invalid value error occurred' AS error_message;
+    END;
+
+    -- 可能引发自定义异常的逻辑
+    IF val < 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Value cannot be negative';
+    ELSEIF val > 100 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Value cannot be greater than 100';
+    END IF;
+
+    -- 其他SQL操作
+    INSERT INTO test_table_2 (column1) VALUES (val);
+END
+$$
+DELIMITER ;
+
+call example_procedure(1000);
+
 
 -- 示例6：定义存储程序，往`sort`表插入数据行，如果插入成功，则设置会话变量为0；如果插入重复值，则设置会话变量为1.
 ALTER TABLE sort
@@ -593,8 +655,10 @@ VALUES ('BIO-301', 'BIO-101'),
        ('CS-101', 'CS-10'),
        ('CS-10', 'CS-1');
 
+select * from prereq;
+
 -- 查询以CS-101为前行课程的课程
-SELECT b.*
+SELECT a.*, b.*
 FROM prereq a
          JOIN prereq b ON a.course_id = b.prereq_id
 WHERE a.course_id = 'CS-101';
@@ -605,13 +669,14 @@ where course_id = 'CS-10';
 
 -- MYSQL8以上版本支持以下语法
 -- 查询CS-10的所有后继课程
-with recursive tree_course(course_id, prereq_id, lev) as (select course_id, prereq_id, 0 as lev
-                                                          from prereq
-                                                          where course_id = 'CS-10'
-                                                          union all
-                                                          select s.course_id, s.prereq_id, p.lev + 1 as lev
-                                                          from tree_course p
-                                                                   join prereq s on p.course_id = s.prereq_id)
+with recursive tree_course(course_id, prereq_id, lev) as
+    (select course_id, prereq_id, 0 as lev
+      from prereq
+      where course_id = 'CS-10'
+      union all
+      select s.course_id, s.prereq_id, p.lev + 1 as lev
+      from tree_course p
+               join prereq s on p.course_id = s.prereq_id)
 select *
 from tree_course;
 
@@ -755,12 +820,13 @@ DELIMITER ;
 -- 示例16：首先，定义存储过程，检查`orders`表的`product_id`都在`product`表中，如果不在，则将对应的行移动到`orders_suspend`表中（`orders_suspend`有`orders`所有字段，且有`insert_time`字段记录移动时间）。
 -- 然后，定义事件，在每天`00:00:00`执行该检查。
 USE purchase;
-alter table `order` rename orders;
+
 -- 定义表orders_suspend
 CREATE TABLE orders_suspend
 SELECT *
 FROM orders
 WHERE 1 = 0;
+
 ALTER TABLE orders_suspend
     ADD insert_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP();
 
